@@ -6347,7 +6347,7 @@ rb_io_binmode(VALUE io)
     fptr->mode |= FMODE_BINMODE;
     fptr->mode &= ~FMODE_TEXTMODE;
     fptr->writeconv_pre_ecflags &= ~ECONV_NEWLINE_DECORATOR_MASK;
-#ifdef O_BINARY
+#if defined(O_BINARY) && !defined(__SWITCH__)
     if (!fptr->readconv) {
         SET_BINARY_MODE_WITH_SEEK_CUR(fptr);
     }
