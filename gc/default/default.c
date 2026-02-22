@@ -2,7 +2,9 @@
 
 #include <signal.h>
 
-#ifndef _WIN32
+#if defined(__SWITCH__)
+# include <switch.h>
+#elif !defined(_WIN32)
 # include <sys/mman.h>
 # include <unistd.h>
 # ifdef HAVE_SYS_PRCTL_H
@@ -138,7 +140,7 @@
 #endif
 
 #ifndef GC_CAN_COMPILE_COMPACTION
-#if defined(__wasi__) /* WebAssembly doesn't support signals */
+#if defined(__wasi__) || defined(__SWITCH__) /* WebAssembly doesn't support signals */
 # define GC_CAN_COMPILE_COMPACTION 0
 #else
 # define GC_CAN_COMPILE_COMPACTION 1
@@ -3201,6 +3203,10 @@ protect_page_body(struct heap_page_body *body, DWORD protect)
     DWORD old_protect;
     return VirtualProtect(body, HEAP_PAGE_SIZE, protect, &old_protect) != 0;
 }
+#elif defined(__SWITCH__)
+// Compaction is disabled at runtime. This is dead code.
+enum {HEAP_PAGE_LOCK = 0, HEAP_PAGE_UNLOCK = 1};
+#define protect_page_body(body, protect) (1)
 #else
 enum {HEAP_PAGE_LOCK = PROT_NONE, HEAP_PAGE_UNLOCK = PROT_READ | PROT_WRITE};
 #define protect_page_body(body, protect) !mprotect((body), HEAP_PAGE_SIZE, (protect))
