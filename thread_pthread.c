@@ -305,7 +305,7 @@ event_name(rb_event_flag_t event)
 
 static rb_serial_t current_fork_gen = 1; /* We can't use GET_VM()->fork_gen */
 
-#if defined(SIGVTALRM) && !defined(__EMSCRIPTEN__)
+#if defined(SIGVTALRM) && !defined(__EMSCRIPTEN__)  && defined(HAVE_SIGACTION)
 #  define USE_UBF_LIST 1
 #endif
 
@@ -1648,7 +1648,9 @@ Init_native_thread(rb_thread_t *main_th)
         rb_bug("pthread_key_create failed (ruby_current_ec_key)");
     }
 #endif
+#ifdef HAVE_SIGACTION
     ruby_posix_signal(SIGVTALRM, null_func);
+#endif
 
     // setup vm
     rb_vm_t *vm = main_th->vm;
@@ -2610,6 +2612,7 @@ close_invalidate_pair(int fds[2], const char *msg)
     }
 }
 
+#if !defined(__SWITCH__)
 static void
 set_nonblock(int fd)
 {
@@ -2659,6 +2662,7 @@ setup_communication_pipe_internal(int pipes[2])
     set_nonblock(pipes[0]);
     set_nonblock(pipes[1]);
 }
+#endif // !defined(__SWITCH__)
 
 #if !defined(SET_CURRENT_THREAD_NAME) && defined(__linux__) && defined(PR_SET_NAME)
 # define SET_CURRENT_THREAD_NAME(name) prctl(PR_SET_NAME, name)
@@ -2786,7 +2790,13 @@ static struct {
     rb_serial_t created_fork_gen;
     pthread_t pthread_id;
 
+#ifdef __SWITCH__
+    pthread_mutex_t comm_lock;
+    pthread_cond_t  comm_cond;
+    int             comm_wakeup;  // prevents lost wakeups between signal and wait
+#else
     int comm_fds[2]; // r, w
+#endif
 
 #if (HAVE_SYS_EPOLL_H || HAVE_SYS_EVENT_H) && USE_MN_THREADS
     int event_fd; // kernel event queue fd (epoll/kqueue)
@@ -2982,6 +2992,7 @@ timer_thread_check_timeslice(rb_vm_t *vm)
 void
 rb_assert_sig(void)
 {
+#ifdef HAVE_SIGACTION
     sigset_t oldmask;
     pthread_sigmask(0, NULL, &oldmask);
     if (sigismember(&oldmask, SIGVTALRM)) {
@@ -2990,6 +3001,7 @@ rb_assert_sig(void)
     else {
         RUBY_DEBUG_LOG("ok");
     }
+#endif
 }
 
 static void *
@@ -3019,6 +3031,16 @@ timer_thread_func(void *ptr)
 static void
 signal_communication_pipe(int fd)
 {
+#ifdef __SWITCH__
+    /* No pipe on Switch — wake the timer thread via condvar.
+     * pthread_cond_signal is safe here: on Horizon there are no
+     * POSIX signals so this is only ever called from thread context. */
+    (void)fd;
+    pthread_mutex_lock(&timer_th.comm_lock);
+    timer_th.comm_wakeup = 1;
+    pthread_cond_signal(&timer_th.comm_cond);
+    pthread_mutex_unlock(&timer_th.comm_lock);
+#else
 #if USE_EVENTFD
     const uint64_t buff = 1;
 #else
@@ -3047,13 +3069,18 @@ signal_communication_pipe(int fd)
     else {
         // ignore wakeup
     }
+#endif
 }
 
 static void
 timer_thread_wakeup_force(void)
 {
     // should not use RUBY_DEBUG_LOG() because it can be called within signal handlers.
+#ifdef __SWITCH__
+    signal_communication_pipe(0); // fd argument unused on Switch
+#else
     signal_communication_pipe(timer_th.comm_fds[1]);
+#endif
 }
 
 static void
@@ -3064,7 +3091,11 @@ timer_thread_wakeup_locked(rb_vm_t *vm)
 
     if (timer_th.created_fork_gen == current_fork_gen) {
         if (vm->ractor.sched.timeslice_wait_inf) {
+#ifdef __SWITCH__
+            RUBY_DEBUG_LOG("wakeup (condvar)%s", "");
+#else
             RUBY_DEBUG_LOG("wakeup with fd:%d", timer_th.comm_fds[1]);
+#endif
             timer_thread_wakeup_force();
         }
         else {
@@ -3098,9 +3129,14 @@ rb_thread_create_timer_thread(void)
         if (created_fork_gen != 0) {
             RUBY_DEBUG_LOG("forked child process");
 
+#ifdef __SWITCH__
+            pthread_cond_destroy(&timer_th.comm_cond);
+            pthread_mutex_destroy(&timer_th.comm_lock);
+#else
             CLOSE_INVALIDATE_PAIR(timer_th.comm_fds);
 #if HAVE_SYS_EPOLL_H && USE_MN_THREADS
             close_invalidate(&timer_th.event_fd, "close event_fd");
+#endif
 #endif
             rb_native_mutex_destroy(&timer_th.waiting_lock);
         }
@@ -3109,8 +3145,13 @@ rb_thread_create_timer_thread(void)
         rb_native_mutex_initialize(&timer_th.waiting_lock);
 
         // open communication channel
+#ifdef __SWITCH__
+        pthread_mutex_init(&timer_th.comm_lock, NULL);
+        pthread_cond_init(&timer_th.comm_cond, condattr_monotonic);
+        timer_th.comm_wakeup = 0;
+#else
         setup_communication_pipe_internal(timer_th.comm_fds);
-
+#endif
         // open event fd
         timer_thread_setup_mn();
     }
@@ -3191,6 +3232,10 @@ rb_reserved_fd_p(int fd)
     /* no false-positive if out-of-FD at startup */
     if (fd < 0) return 0;
 
+#ifdef __SWITCH__
+    /* No communication pipe on Switch — no reserved fds */
+    return 0;
+#else
     if (fd == timer_th.comm_fds[0] ||
         fd == timer_th.comm_fds[1]
 #if (HAVE_SYS_EPOLL_H || HAVE_SYS_EVENT_H) && USE_MN_THREADS
@@ -3209,6 +3254,7 @@ rb_reserved_fd_p(int fd)
     else {
         return 0;
     }
+#endif /* __SWITCH__ */
 }
 
 rb_nativethread_id_t

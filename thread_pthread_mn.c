@@ -1039,6 +1039,61 @@ timer_thread_setup_mn(void)
     // do nothing
 }
 
+#ifdef __SWITCH__
+
+static void
+timer_thread_polling(rb_vm_t *vm)
+{
+    int timeout = timer_thread_set_timeout(vm);
+    int timed_out = 0;
+
+    pthread_mutex_lock(&timer_th.comm_lock);
+    {
+        if (!timer_th.comm_wakeup) {
+            if (timeout < 0) {
+                /* infinite wait — block until explicitly woken */
+                pthread_cond_wait(&timer_th.comm_cond, &timer_th.comm_lock);
+            }
+            else {
+                /* timed wait — convert relative ms to absolute timespec */
+                struct timespec ts;
+                // Use the matching clock source
+                if (condattr_monotonic) {
+                    clock_gettime(CLOCK_MONOTONIC, &ts);
+                } else {
+                    clock_gettime(CLOCK_REALTIME, &ts);
+                }
+                ts.tv_sec  += timeout / 1000;
+                ts.tv_nsec += (timeout % 1000) * 1000000L;
+                if (ts.tv_nsec >= 1000000000L) {
+                    ts.tv_sec++;
+                    ts.tv_nsec -= 1000000000L;
+                }
+                int rc = pthread_cond_timedwait(&timer_th.comm_cond,
+                                                &timer_th.comm_lock, &ts);
+                if (rc == ETIMEDOUT) {
+                    timed_out = 1;
+                }
+            }
+        }
+        timer_th.comm_wakeup = 0;
+    }
+    pthread_mutex_unlock(&timer_th.comm_lock);
+
+    if (timed_out) {
+        /* Same as the poll() timeout=0 path: check timeslice */
+        rb_native_mutex_lock(&vm->ractor.sched.lock);
+        {
+            timer_thread_check_timeslice(vm);
+        }
+        rb_native_mutex_unlock(&vm->ractor.sched.lock);
+    }
+    /* If woken explicitly, the caller's main loop handles it
+     * (check_signal, check_timeout, ubf_wakeup_all). */
+}
+
+#else /* !__SWITCH__ */
+
 static void
 timer_thread_polling(rb_vm_t *vm)
 {
@@ -1080,5 +1135,7 @@ timer_thread_polling(rb_vm_t *vm)
         rb_bug("unreachbale");
     }
 }
+
+#endif /* __SWITCH__ */
 
 #endif // HAVE_SYS_EPOLL_H || HAVE_SYS_EVENT_H
