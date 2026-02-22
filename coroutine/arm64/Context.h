@@ -23,6 +23,12 @@
 #define COROUTINE_DECL void
 #endif
 
+#if defined(__SWITCH__)
+// Even though we are on a 64bit architecture, the Switch only have 4GB of ram
+// This is a preventive measure and might not be needed in the end.
+#define COROUTINE_LIMITED_ADDRESS_SPACE
+#endif
+
 #if defined(_WIN32)
 #define TEB_OFFSET 0x20
 #else

@@ -11,7 +11,10 @@
 
 #include "ruby/internal/config.h"
 
-#ifndef _WIN32
+#if defined(__SWITCH__)
+#include <switch.h>
+#include <malloc.h>
+#elif !defined(_WIN32)
 #include <unistd.h>
 #include <sys/mman.h>
 #endif
@@ -476,6 +479,15 @@ fiber_pool_allocate_memory(size_t * count, size_t stride)
             *count = (*count) >> 1;
         }
         else {
+            return base;  
+        }
+#elif defined(__SWITCH__)
+        void * base = memalign(RB_PAGE_SIZE, (*count)*stride);
+
+        if (!base) {
+            *count = (*count) >> 1;
+        }
+        else {
             return base;
         }
 #else
@@ -551,6 +563,12 @@ fiber_pool_expand(struct fiber_pool * fiber_pool, size_t count)
         if (!VirtualProtect(page, RB_PAGE_SIZE, PAGE_READWRITE | PAGE_GUARD, &old_protect)) {
             VirtualFree(allocation->base, 0, MEM_RELEASE);
             rb_raise(rb_eFiberError, "can't set a guard page: %s", ERRNOMSG);
+        }
+#elif defined(__SWITCH__)
+        // Strip read/write permissions from this page to act as a hardware guard
+        if (R_FAILED(svcSetMemoryPermission(page, RB_PAGE_SIZE, Perm_None))) {
+            free(allocation->base);
+            rb_raise(rb_eFiberError, "can't set a guard page: svcSetMemoryPermission failed");
         }
 #else
         if (mprotect(page, RB_PAGE_SIZE, PROT_NONE) < 0) {
@@ -629,8 +647,16 @@ fiber_pool_allocation_free(struct fiber_pool_allocation * allocation)
         fiber_pool_vacancy_remove(vacancy);
     }
 
-#ifdef _WIN32
+#if defined(_WIN32)
     VirtualFree(allocation->base, 0, MEM_RELEASE);
+#elif defined (__SWITCH__)
+    // We MUST restore Perm_Rw before freeing, or the heap allocator will crash
+    for (size_t j = 0; j < allocation->count; j += 1) {
+        void * p_base = (char*)allocation->base + (allocation->stride * j);
+        void * page = (char*)p_base + STACK_DIR_UPPER(allocation->size, 0);
+        svcSetMemoryPermission(page, RB_PAGE_SIZE, Perm_Rw);
+    }
+    free(allocation->base);
 #else
     munmap(allocation->base, allocation->stride * allocation->count);
 #endif
