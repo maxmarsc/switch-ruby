@@ -32,6 +32,10 @@ size_t RUBY_IO_BUFFER_PAGE_SIZE;
 size_t RUBY_IO_BUFFER_DEFAULT_SIZE;
 
 #ifdef _WIN32
+#elif defined(__SWITCH__)
+#include <unistd.h>
+#include <switch.h>
+#include <malloc.h>
 #else
 #include <unistd.h>
 #include <sys/mman.h>
@@ -70,6 +74,14 @@ io_buffer_map_memory(size_t size, int flags)
     if (!base) {
         rb_sys_fail("io_buffer_map_memory:VirtualAlloc");
     }
+#elif defined(__SWITCH__)
+    // Fallback to standard heap allocation, aligned to the page size
+    void * base = memalign(RUBY_IO_BUFFER_PAGE_SIZE, size);
+    if (!base) {
+        rb_sys_fail("io_buffer_map_memory:memalign");
+    }
+    // mmap and VirtualAlloc guarantee zeroed memory, so we must manually zero it
+    memset(base, 0, size);
 #else
     int mmap_flags = MAP_ANONYMOUS;
     if (flags & RB_IO_BUFFER_SHARED) {
@@ -94,6 +106,10 @@ io_buffer_map_memory(size_t size, int flags)
 static void
 io_buffer_map_file(struct rb_io_buffer *buffer, int descriptor, size_t size, rb_off_t offset, enum rb_io_buffer_flags flags)
 {
+#if defined(__SWITCH__)
+    // Horizon OS does not support POSIX file memory mapping.
+    rb_raise(rb_eNotImpError, "IO::Buffer.map (file mapping) is not supported on Horizon OS");
+#else
 #if defined(_WIN32)
     HANDLE file = (HANDLE)_get_osfhandle(descriptor);
     if (!file) rb_sys_fail("io_buffer_map_descriptor:_get_osfhandle");
@@ -164,6 +180,7 @@ io_buffer_map_file(struct rb_io_buffer *buffer, int descriptor, size_t size, rb_
 
     buffer->flags |= RB_IO_BUFFER_MAPPED;
     buffer->flags |= RB_IO_BUFFER_FILE;
+#endif
 }
 
 static void
@@ -243,6 +260,9 @@ io_buffer_free(struct rb_io_buffer *buffer)
             else {
                 VirtualFree(buffer->base, 0, MEM_RELEASE);
             }
+#elif defined(__SWITCH__)
+            // MAPPED buffers on the Switch were allocated with memalign
+            free(buffer->base);
 #else
             munmap(buffer->base, buffer->size);
 #endif
