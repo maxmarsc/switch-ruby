@@ -62,6 +62,10 @@
 # include <AvailabilityMacros.h>
 #endif
 
+#if defined(__SWITCH__)
+# include <switch.h>
+#endif
+
 #include "internal.h"
 #include "internal/array.h"
 #include "internal/compilers.h"
@@ -432,7 +436,7 @@ random_init(int argc, VALUE *argv, VALUE obj)
 
 #define DEFAULT_SEED_LEN (DEFAULT_SEED_CNT * (int)sizeof(int32_t))
 
-#if defined(S_ISCHR) && !defined(DOSISH)
+#if defined(S_ISCHR) && !defined(DOSISH) && !defined (__SWITCH__)
 # define USE_DEV_URANDOM 1
 #else
 # define USE_DEV_URANDOM 0
@@ -635,6 +639,13 @@ fill_random_bytes_lib(void *seed, size_t size)
 
 /* fill random bytes by dedicated syscall */
 #if 0
+#elif defined (__SWITCH__)
+static int
+fill_random_bytes_syscall(void *seed, size_t size, int need_secure)
+{
+    randomGet(seed, size);
+    return 0;
+}
 #elif defined HAVE_GETRANDOM
 static int
 fill_random_bytes_syscall(void *seed, size_t size, int need_secure)
