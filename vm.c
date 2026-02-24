@@ -4325,7 +4325,9 @@ ruby_init_stack(void *addr)
     native_main_thread_stack_top = addr;
 }
 
-#ifndef _WIN32
+#if defined(__SWITCH__)
+#include <unistd.h>
+#elif !defined(_WIN32)
 #include <unistd.h>
 #include <sys/mman.h>
 #endif

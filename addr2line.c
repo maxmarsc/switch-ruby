@@ -31,7 +31,19 @@
 
 #include "ruby/internal/stdbool.h"
 
-#if defined(USE_ELF) || defined(HAVE_MACH_O_LOADER_H)
+#if defined(__SWITCH__)
+
+void
+rb_dump_backtrace_with_lines(int num_traces, void **traces, FILE *errout)
+{
+    // C-level backtraces with lines are not supported on Horizon OS.
+    // We print the raw memory addresses instead.
+    for (int i = 0; i < num_traces; i++) {
+        fprintf(errout, "[0x%p]\n", traces[i]);
+    }
+}
+
+#elif defined(USE_ELF) || defined(HAVE_MACH_O_LOADER_H)
 
 #include <fcntl.h>
 #include <limits.h>
