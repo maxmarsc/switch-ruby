@@ -1139,7 +1139,10 @@ pst_wcoredump(VALUE st)
 static rb_pid_t
 do_waitpid(rb_pid_t pid, int *st, int flags)
 {
-#if defined HAVE_WAITPID
+#if defined(__SWITCH__)
+    errno = ECHILD;
+    return -1;
+#elif defined HAVE_WAITPID
     return waitpid(pid, st, flags);
 #elif defined HAVE_WAIT4
     return wait4(pid, st, flags, NULL);
@@ -1733,6 +1736,9 @@ exec_with_sh(const char *prog, char **argv, char **envp)
 static int
 proc_exec_cmd(const char *prog, VALUE argv_str, VALUE envp_str)
 {
+#if defined(__SWITCH__)
+    return ENOSYS;
+#else
     char **argv;
 #ifndef _WIN32
     char **envp;
@@ -1758,12 +1764,16 @@ proc_exec_cmd(const char *prog, VALUE argv_str, VALUE envp_str)
     try_with_sh(err, prog, argv, envp); /* try_with_sh() is async-signal-safe. */
     return err;
 #endif
+#endif
 }
 
 /* This function should be async-signal-safe.  Actually it is. */
 static int
 proc_exec_sh(const char *str, VALUE envp_str)
 {
+#if defined(__SWITCH__)
+    return ENOSYS;
+#else
     const char *s;
 
     s = str;
@@ -1795,6 +1805,7 @@ proc_exec_sh(const char *str, VALUE envp_str)
         execl("/bin/sh", "sh", "-c", str, (char *)NULL); /* async-signal-safe (since SUSv4) */
 #endif	/* _WIN32 */
     return errno;
+#endif
 }
 
 int
@@ -4617,6 +4628,10 @@ rb_execarg_commandline(const struct rb_execarg *eargp, VALUE *prog)
 static rb_pid_t
 rb_spawn_process(struct rb_execarg *eargp, char *errmsg, size_t errmsg_buflen)
 {
+#if defined(__SWITCH__)
+    errno = ENOSYS;
+    return -1;
+#else
     rb_pid_t pid;
 #if !defined HAVE_WORKING_FORK || USE_SPAWNV
     VALUE prog;
@@ -4665,6 +4680,7 @@ rb_spawn_process(struct rb_execarg *eargp, char *errmsg, size_t errmsg_buflen)
 #endif
 
     return pid;
+#endif
 }
 
 struct spawn_args {
