@@ -353,6 +353,7 @@ EOF
     CFLAGS="${SWITCH_CFLAGS}" \
     CPPFLAGS="${SWITCH_CPPFLAGS}" \
     LDFLAGS="${SWITCH_LDFLAGS}" \
+    XLDFLAGS="-specs=${LIBNX}/switch.specs" \
     LIBS="-lnx" \
     setup=Setup.switch \
     \
