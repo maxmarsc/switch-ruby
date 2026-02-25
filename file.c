@@ -131,6 +131,21 @@ int flock(int, int);
 # define STAT(p, s)      stat((p), (s))
 #endif /* _WIN32 */
 
+#if defined(__SWITCH__)
+// Provide the missing POSIX environment stubs
+// On the console, we are always the "root" user (ID 0)
+rb_uid_t getuid(void) { return 0; }
+rb_uid_t geteuid(void) { return 0; }
+rb_gid_t getgid(void) { return 0; }
+rb_gid_t getegid(void) { return 0; }
+
+// Provide a default umask (022 is standard default)
+rb_mode_t umask(rb_mode_t mask) { return 022; }
+
+// Stub getlogin (no terminal users on Horizon OS)
+char *getlogin(void) { return NULL; }
+#endif
+
 #if defined _WIN32 || defined __APPLE__
 # define USE_OSPATH 1
 # define TO_OSPATH(str) rb_str_encode_ospath(str)
@@ -1493,7 +1508,7 @@ rb_group_member(GETGROUPS_T gid)
 #  define S_IXUGO		(S_IXUSR | S_IXGRP | S_IXOTH)
 #endif
 
-#if defined(S_IXGRP) && !defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(S_IXGRP) && !defined(_WIN32) && !defined(__CYGWIN__) && !defined(__SWITCH__)
 #define USE_GETEUID 1
 #endif
 
