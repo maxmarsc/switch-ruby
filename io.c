@@ -184,6 +184,41 @@ off_t __syscall(quad_t number, ...);
 #include "win32/file.h"
 #endif
 
+#if defined(__SWITCH__)
+// libnx lacks advanced POSIX I/O and process functions.
+// We stub them to return ENOSYS so they fail loudly and predictably.
+ssize_t pread(int fd, void *buf, size_t count, off_t offset) {
+    errno = ENOSYS;
+    return -1;
+}
+
+ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset) {
+    errno = ENOSYS;
+    return -1;
+}
+
+int pipe(int pipefd[2]) {
+    errno = ENOSYS;
+    return -1;
+}
+
+FILE *popen(const char *command, const char *type) {
+    errno = ENOSYS;
+    return NULL;
+}
+
+int pclose(FILE *stream) {
+    errno = ENOSYS;
+    return -1;
+}
+
+// FAT32/exFAT have no ownership concepts. 
+// We return 0 here because failing this would break standard file-copying/editing routines.
+int chown(const char *path, rb_uid_t owner, rb_gid_t group) {
+    return 0;
+}
+#endif
+
 VALUE rb_cIO;
 VALUE rb_eEOFError;
 VALUE rb_eIOError;
