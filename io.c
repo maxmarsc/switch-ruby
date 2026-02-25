@@ -217,6 +217,21 @@ int pclose(FILE *stream) {
 int chown(const char *path, rb_uid_t owner, rb_gid_t group) {
     return 0;
 }
+
+// POSIX System Configuration
+long sysconf(int name) {
+    switch (name) {
+        case _SC_PAGESIZE:
+            return 4096; // Standard ARM64 hardware page size
+        default:
+            errno = EINVAL;
+            return -1;
+    }
+}
+
+pid_t getppid(void) {
+    return 1; // Fake parent PID (init)
+}
 #endif
 
 VALUE rb_cIO;
