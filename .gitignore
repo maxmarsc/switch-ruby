@@ -182,7 +182,7 @@ lcov*.info
 /ext/extinit.c
 /ext/configure-ext.mk
 /ext/*/exts.mk
-/ext/Setup
+/ext/Setup.switch
 
 # /ext/-test-/cxxanyargs
 /ext/-test-/cxxanyargs/failure*.failed
@@ -280,3 +280,5 @@ lcov*.info
 /bundled_gems.json
 /default_gems.json
 /gems/default_gems
+
+ext/Setup

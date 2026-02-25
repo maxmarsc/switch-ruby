@@ -329,7 +329,7 @@ echo "    DEVKITPRO = ${DEVKITPRO}"
 echo "    PREFIX     = ${PREFIX}"
 echo ""
 
-cat > ../ext/Setup <<'EOF'
+cat > ../ext/Setup.switch <<'EOF'
 option nodynamic
 rbconfig/sizeof
 strscan
@@ -354,6 +354,7 @@ EOF
     CPPFLAGS="${SWITCH_CPPFLAGS}" \
     LDFLAGS="${SWITCH_LDFLAGS}" \
     LIBS="-lnx" \
+    setup=Setup.switch \
     \
     `# ── Ruby build options ──` \
     --disable-shared \
