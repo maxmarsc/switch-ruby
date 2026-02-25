@@ -2573,15 +2573,11 @@ nogvl_chmod(void *ptr)
 static int
 rb_chmod(const char *path, mode_t mode)
 {
-#if defined(__SWITCH__)
-    return 0; // FAT32 doesn't use UNIX permissions.
-#else
     struct nogvl_chmod_data data = {
         .path = path,
         .mode = mode,
     };
     return IO_WITHOUT_GVL_INT(nogvl_chmod, &data);
-#endif
 }
 
 static int
@@ -2631,13 +2627,9 @@ io_blocking_fchmod(void *ptr)
 static int
 rb_fchmod(int fd, mode_t mode)
 {
-#if defined(__SWITCH__)
-    return 0;
-#else
     (void)rb_chmod; /* suppress unused-function warning when HAVE_FCHMOD */
     struct nogvl_fchmod_data data = {.fd = fd, .mode = mode};
     return (int)rb_thread_io_blocking_region(io_blocking_fchmod, &data, fd);
-#endif
 }
 #endif
 
@@ -2742,8 +2734,12 @@ struct chown_args {
 static int
 chown_internal(const char *path, void *arg)
 {
+#if defined(__SWITCH__)
+    return 0; // FAT32/exFAT has no owners. Pretend we succeeded.
+#else
     struct chown_args *args = arg;
     return chown(path, args->owner, args->group);
+#endif
 }
 
 /*
