@@ -329,6 +329,12 @@ echo "    DEVKITPRO = ${DEVKITPRO}"
 echo "    PREFIX     = ${PREFIX}"
 echo ""
 
+cat > ../ext/Setup <<'EOF'
+option nodynamic
+rbconfig/sizeof
+strscan
+EOF
+
 ../configure \
     --host=aarch64-none-elf \
     --prefix="${PREFIX}" \
@@ -341,7 +347,7 @@ echo ""
     NM="${TOOL_PREFIX}-gcc-nm" \
     STRIP="${TOOL_PREFIX}-strip" \
     AS="${TOOL_PREFIX}-as" \
-    LD="${TOOL_PREFIX}-ld" \
+    LD="${TOOL_PREFIX}-gcc" \
     \
     `# ── Flags ──` \
     CFLAGS="${SWITCH_CFLAGS}" \
@@ -368,10 +374,11 @@ echo ""
     --with-coroutine=arm64 \
     \
     `# ── Extensions to include (comma-separated) ──` \
-    --with-ext=json,stringio,pathname,digest,socket,zlib \
+    `# --with-ext=json,stringio,pathname,digest,socket,zlib` \
+    --with-ext='rbconfig/sizeof,strscan' \
     \
     `# ── Extensions to exclude (comma-separated) ──` \
-    --with-out-ext=gdbm,dbm,readline,pty,syslog,fiddle,nkf,openssl,psych \
+    `# --with-out-ext='-test-,gdbm,dbm,readline,pty,syslog,fiddle,nkf,openssl,psych,json,stringio,pathname,digest,socket,zlib'` \
     \
     `# ── Pre-seeded cache variables (section 3) ──` \
     "${CACHE_OVERRIDES[@]}"

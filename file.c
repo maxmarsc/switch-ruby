@@ -2573,11 +2573,15 @@ nogvl_chmod(void *ptr)
 static int
 rb_chmod(const char *path, mode_t mode)
 {
+#if defined(__SWITCH__)
+    return 0; // FAT32 doesn't use UNIX permissions.
+#else
     struct nogvl_chmod_data data = {
         .path = path,
         .mode = mode,
     };
     return IO_WITHOUT_GVL_INT(nogvl_chmod, &data);
+#endif
 }
 
 static int
@@ -2627,9 +2631,13 @@ io_blocking_fchmod(void *ptr)
 static int
 rb_fchmod(int fd, mode_t mode)
 {
+#if defined(__SWITCH__)
+    return 0;
+#else
     (void)rb_chmod; /* suppress unused-function warning when HAVE_FCHMOD */
     struct nogvl_fchmod_data data = {.fd = fd, .mode = mode};
     return (int)rb_thread_io_blocking_region(io_blocking_fchmod, &data, fd);
+#endif
 }
 #endif
 
@@ -2783,11 +2791,15 @@ nogvl_chown(void *ptr)
 static int
 rb_chown(const char *path, rb_uid_t owner, rb_gid_t group)
 {
+#if defined(__SWITCH__)
+    return 0; // FAT32/exFAT has no owners. Pretend we succeeded.
+#else
     struct nogvl_chown_data data = {
         .as = {.path = path},
         .new = {.owner = owner, .group = group},
     };
     return IO_WITHOUT_GVL_INT(nogvl_chown, &data);
+#endif
 }
 
 #ifdef HAVE_FCHOWN
@@ -5320,6 +5332,10 @@ rb_file_truncate(VALUE obj, VALUE len)
 static VALUE
 rb_thread_flock(void *data)
 {
+#if defined(__SWITCH__)
+    // Horizon OS lacks file locking. Let's pretend it succeeded.
+    return (VALUE)0;
+#else
 #ifdef __CYGWIN__
     int old_errno = errno;
 #endif
@@ -5332,6 +5348,7 @@ rb_thread_flock(void *data)
     }
 #endif
     return (VALUE)ret;
+#endif
 }
 
 /*  :markup: markdown

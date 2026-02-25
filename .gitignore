@@ -182,6 +182,7 @@ lcov*.info
 /ext/extinit.c
 /ext/configure-ext.mk
 /ext/*/exts.mk
+/ext/Setup
 
 # /ext/-test-/cxxanyargs
 /ext/-test-/cxxanyargs/failure*.failed
