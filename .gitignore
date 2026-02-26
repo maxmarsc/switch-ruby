@@ -281,4 +281,9 @@ lcov*.info
 /default_gems.json
 /gems/default_gems
 
-ext/Setup
+# Switch
+ext/Setup.switch
+test-switch/*.o
+test-switch/*.elf
+test-switch/*.nacp
+test-switch/*.nro
