@@ -3216,6 +3216,9 @@ ruby_sysinit(int *argc, char ***argv)
 {
 #if defined(_WIN32)
     rb_w32_sysinit(argc, argv);
+#elif defined(__SWITCH__)
+    // On Horizon OS, stdio fds are managed by consoleInit/nxlinkStdio
+    return;
 #endif
     if (*argc >= 0 && *argv) {
         origarg.argc = *argc;

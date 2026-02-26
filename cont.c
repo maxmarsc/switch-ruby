@@ -483,6 +483,8 @@ fiber_pool_allocate_memory(size_t * count, size_t stride)
         }
 #elif defined(__SWITCH__)
         void * base = memalign(RB_PAGE_SIZE, (*count)*stride);
+        // mmap guarantees zero-initialized memory, memalign does not.
+        memset(base, 0, (*count)*stride);
 
         if (!base) {
             *count = (*count) >> 1;
@@ -565,11 +567,14 @@ fiber_pool_expand(struct fiber_pool * fiber_pool, size_t count)
             rb_raise(rb_eFiberError, "can't set a guard page: %s", ERRNOMSG);
         }
 #elif defined(__SWITCH__)
+        // TODO: it seems we cannot call svcSetMemoryPermission on memalign/malloc memory
+        // in the future to get proper stack protection we might need kernel allocated memory
+
         // Strip read/write permissions from this page to act as a hardware guard
-        if (R_FAILED(svcSetMemoryPermission(page, RB_PAGE_SIZE, Perm_None))) {
-            free(allocation->base);
-            rb_raise(rb_eFiberError, "can't set a guard page: svcSetMemoryPermission failed");
-        }
+        // if (R_FAILED(svcSetMemoryPermission(page, RB_PAGE_SIZE, Perm_None))) {
+        //     free(allocation->base);
+        //     rb_raise(rb_eFiberError, "can't set a guard page: svcSetMemoryPermission failed");
+        // }
 #else
         if (mprotect(page, RB_PAGE_SIZE, PROT_NONE) < 0) {
             munmap(allocation->base, count*stride);
@@ -650,12 +655,14 @@ fiber_pool_allocation_free(struct fiber_pool_allocation * allocation)
 #if defined(_WIN32)
     VirtualFree(allocation->base, 0, MEM_RELEASE);
 #elif defined (__SWITCH__)
-    // We MUST restore Perm_Rw before freeing, or the heap allocator will crash
-    for (size_t j = 0; j < allocation->count; j += 1) {
-        void * p_base = (char*)allocation->base + (allocation->stride * j);
-        void * page = (char*)p_base + STACK_DIR_UPPER(allocation->size, 0);
-        svcSetMemoryPermission(page, RB_PAGE_SIZE, Perm_Rw);
-    }
+    // TODO: it seems we cannot call svcSetMemoryPermission on memalign/malloc memory
+    // in the future to get proper stack protection we might need kernel allocated memory
+
+    // for (size_t j = 0; j < allocation->count; j += 1) {
+    //     void * p_base = (char*)allocation->base + (allocation->stride * j);
+    //     void * page = (char*)p_base + STACK_DIR_UPPER(allocation->size, 0);
+    //     svcSetMemoryPermission(page, RB_PAGE_SIZE, Perm_Rw);
+    // }
     free(allocation->base);
 #else
     munmap(allocation->base, allocation->stride * allocation->count);

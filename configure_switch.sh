@@ -103,10 +103,11 @@ CACHE_OVERRIDES=(
     # ─── Memory mapping: Horizon has no mmap ───
     ac_cv_func_mmap=no              # new explicit check in 3.4
     ac_cv_func_mremap=no            # new in 3.4
-    ac_cv_func_posix_memalign=no    # new in 3.4
     ac_cv_func_posix_madvise=no     # new in 3.4
     ac_cv_func_posix_fadvise=no     # new in 3.4
-    ac_cv_func_memalign=no
+    ac_cv_func_posix_memalign=no    # new in 3.4
+    # ─── libnx provide memalign ───
+    ac_cv_func_memalign=yes
 
     # ─── Pipe: critical for MRI's self-pipe trick (thread interrupts) ───
     # newlib may or may not provide working pipe().
