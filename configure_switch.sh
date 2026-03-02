@@ -32,6 +32,12 @@ TOOL_PREFIX="${DEVKITA64}/bin/aarch64-none-elf"
 PREFIX="${PREFIX:-${PWD}/build-switch/install}"
 
 # =============================================================================
+# 1.B) Miniruby patching - make sure it knows how to find a miniruby native build
+# =============================================================================
+NATIVE_BUILD="${PWD}/../build-native"
+NATIVE_MINIRUBY="${PWD}/miniruby -I${NATIVE_BUILD} -I${PWD}/../lib -I${PWD}/.ext/common"
+
+# =============================================================================
 # 2) Compiler/linker flags — matching CMake toolchain
 # =============================================================================
 
@@ -339,6 +345,7 @@ EOF
 ../configure \
     --host=aarch64-none-elf \
     --prefix="${PREFIX}" \
+    MINIRUBY="${NATIVE_MINIRUBY}" \
     \
     `# ── Toolchain ──` \
     CC="${TOOL_PREFIX}-gcc" \
@@ -386,8 +393,20 @@ EOF
     `# ── Pre-seeded cache variables (section 3) ──` \
     "${CACHE_OVERRIDES[@]}"
 
-# sed -i 's/SHORT2NUM/INT2NUM/g' ../.ext/include/aarch64-elf/ruby/config.h
-# sed -i 's/NUM2SHORT/NUM2INT/g' ../.ext/include/aarch64-elf/ruby/config.h
+# =============================================================================
+# 5) Post-configure fixups for cross-compilation
+# =============================================================================
+
+# Ruby's build system disables builtin .rb precompilation during cross-builds
+# because it assumes MINIRUBY can't run on the host. We have a native MINIRUBY,
+# so we force it back on. Without this, symbol.rb, kernel.rb, io.rb, etc.
+# are not compiled into the binary, and core methods like Symbol#to_s are missing.
+sed -i 's/^BUILTIN_BINARY = no/BUILTIN_BINARY = yes/' Makefile
+# Replace the cross-compiled miniruby target with a symlink to native.
+sed -i "/^miniruby\\\$(EXEEXT):/,/^[^\t]/{
+    /^miniruby/c\\miniruby: ; ln -sf ${NATIVE_BUILD}/miniruby miniruby
+    /^\t/d
+}" Makefile
 
 echo ""
 echo "=== Configure complete ==="
