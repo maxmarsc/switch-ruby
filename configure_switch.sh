@@ -13,6 +13,16 @@
 set -euo pipefail
 
 # =============================================================================
+# Options
+# =============================================================================
+if [[ "${1:-}" == "--debug" ]]; then
+    OPT_FLAGS="-g -O0"
+else
+    OPT_FLAGS="-O2 -DNDEBUG"
+fi
+
+
+# =============================================================================
 # 1) Toolchain paths — derived from DevkitA64Libnx.cmake
 # =============================================================================
 
@@ -34,7 +44,12 @@ PREFIX="${PREFIX:-${PWD}/build-switch/install}"
 # =============================================================================
 # 1.B) Miniruby patching - make sure it knows how to find a miniruby native build
 # =============================================================================
-NATIVE_BUILD="${PWD}/../build-native"
+if [ -z "${NATIVE_BUILD:-}" ]; then
+    echo "ERROR: NATIVE_BUILD environment variable not set."
+    echo "       export NATIVE_BUILD=/path/to/native/build"
+    exit 1
+fi
+
 NATIVE_MINIRUBY="${PWD}/miniruby -I${NATIVE_BUILD} -I${PWD}/../lib -I${PWD}/.ext/common"
 
 # =============================================================================
@@ -43,7 +58,7 @@ NATIVE_MINIRUBY="${PWD}/miniruby -I${NATIVE_BUILD} -I${PWD}/../lib -I${PWD}/.ext
 
 ARCH_FLAGS="-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE"
 
-SWITCH_CFLAGS="${ARCH_FLAGS} -O2 -ffunction-sections -fdata-sections"
+SWITCH_CFLAGS="${ARCH_FLAGS} ${OPT_FLAGS} -ffunction-sections -fdata-sections"
 
 # -D__SWITCH__ -DSWITCH: platform detection macros (from CMake toolchain)
 # -DUSE_MN_THREADS=0:    Ruby 3.4 M:N threading scheduler requires epoll/kqueue/io_uring,
@@ -311,7 +326,7 @@ CACHE_OVERRIDES=(
     rb_cv_scalar_pthread_t=yes
     ac_cv_func_sched_yield=yes
     ac_cv_func_pthread_attr_setinheritsched=no
-    ac_cv_func_pthread_attr_getstack=no
+    ac_cv_func_pthread_attr_getstack=yes
     ac_cv_func_pthread_attr_getguardsize=no
     ac_cv_func_pthread_condattr_setclock=no
     ac_cv_func_pthread_setname_np=no

@@ -11,6 +11,31 @@ int run_file(const char* path) {
     return state; // 0 = success
 }
 
+#if defined(WAIT_FOR_DEBUGGER)
+//NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+volatile bool gdb_wait = true;
+
+int waitForDebugger(PadState* pad) {
+  printf(
+      "Waiting for debugger or [-] button to start or [+] button to exit\n");
+  while (appletMainLoop() && gdb_wait) {
+    padUpdate(pad);
+    u64 k_down = padGetButtonsDown(pad);
+
+    if (k_down & HidNpadButton_Minus) {
+      break;  // break in order to start the application
+    }
+
+    if (k_down & HidNpadButton_Plus) {
+      printf("Exiting to hbmenu...\n");
+      return 1;
+    }
+    svcSleepThread(100000000);  // 100ms
+  }
+  return 0;
+}
+#endif
+
 int main(int argc, char** argv) {
     // initialize console and socket for nxlink
     printf("Initializing console and socket for nxlink...\n");
@@ -20,6 +45,13 @@ int main(int argc, char** argv) {
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
     PadState pad;
     padInitializeDefault(&pad);
+#if defined(WAIT_FOR_DEBUGGER)
+    if (waitForDebugger(&pad)) {
+      socketExit();
+      consoleExit(NULL);
+      return 0;
+    }
+#endif
 
     printf("Initializing Ruby...\n");
     ruby_sysinit(&argc, &argv);

@@ -4,6 +4,17 @@ ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
 endif
 
+# Default to release if not specified
+BUILD ?= release
+
+ifeq ($(BUILD),debug)
+    # Append debug flags
+    OPT_FLAGS += -g -O0 -DWAIT_FOR_DEBUGGER
+else
+    # Append release flags
+    OPT_FLAGS += -O2
+endif
+
 DEVKITPRO ?= /opt/devkitpro
 DEVKITA64  = $(DEVKITPRO)/devkitA64
 LIBNX      = $(DEVKITPRO)/libnx
@@ -22,7 +33,7 @@ RUBY_BUILD = ../build
 # ── Compiler flags (must match what Ruby was built with) ──
 ARCH_FLAGS = -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS     = $(ARCH_FLAGS) -O2 -ffunction-sections -fdata-sections \
+CFLAGS     = $(ARCH_FLAGS) $(OPT_FLAGS) -ffunction-sections -fdata-sections \
              -D__SWITCH__ -DSWITCH \
              -I$(RUBY_SRC)/include \
              -I$(RUBY_BUILD)/.ext/include/aarch64-elf \
