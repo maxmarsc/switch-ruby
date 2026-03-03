@@ -35,6 +35,9 @@
 #if defined(__HAIKU__)
 #include <kernel/OS.h>
 #endif
+#if defined(__SWITCH__)
+#include <switch/kernel/thread.h>
+#endif
 #ifdef __linux__
 #include <sys/syscall.h> /* for SYS_gettid */
 #endif
@@ -1806,6 +1809,8 @@ size_t pthread_get_stacksize_np(pthread_t);
 #define STACKADDR_AVAILABLE 1
 #elif defined __HAIKU__
 #define STACKADDR_AVAILABLE 1
+#elif defined __SWITCH__
+#define STACKADDR_AVAILABLE 1
 #endif
 
 #ifndef MAINSTACKADDR_AVAILABLE
@@ -1892,6 +1897,13 @@ get_stack(void **addr, size_t *size)
     CHECK_ERR(get_thread_info(find_thread(NULL), &info));
     *addr = info.stack_base;
     *size = (uintptr_t)info.stack_end - (uintptr_t)info.stack_base;
+    STACK_DIR_UPPER((void)0, (void)(*addr = (char *)*addr + *size));
+#elif defined __SWITCH__
+    STACK_GROW_DIR_DETECTION;
+    Thread *t = threadGetSelf();
+    if (!t || !t->stack_mem) return -1;
+    *addr = t->stack_mem;
+    *size = t->stack_sz;
     STACK_DIR_UPPER((void)0, (void)(*addr = (char *)*addr + *size));
 #else
 #error STACKADDR_AVAILABLE is defined but not implemented.
@@ -3166,7 +3178,11 @@ native_stop_timer_thread(void)
     stopped = --system_working <= 0;
 
     if (stopped) {
+#if !defined(__SWITCH__)
         RUBY_DEBUG_LOG("wakeup send %d", timer_th.comm_fds[1]);
+#else
+        RUBY_DEBUG_LOG("wakeup send (condvar)");
+#endif
         timer_thread_wakeup_force();
         RUBY_DEBUG_LOG("wakeup sent");
         pthread_join(timer_th.pthread_id, NULL);
