@@ -373,6 +373,9 @@ EOF
     --disable-rubygems \
     --with-static-linked-ext \
     \
+    `# ── Force standard setjmp to fix ARM64 GC ──` \
+    --with-setjmp-type=setjmp \
+    \
     `# ── JIT: YJIT needs Rust runtime, RJIT needs fork+exec for CC ──` \
     --disable-yjit \
     --disable-rjit \

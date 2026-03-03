@@ -27,7 +27,7 @@ builtin_lookup(const char *feature, size_t *psize)
 
     // usually, `builtin_binary` order is loading order at miniruby.
     for (const struct builtin_binary *bb = &builtin_binary[0]; bb->feature &&! bin; bb++) {
-        bin = bin4feature(bb++, feature, psize);
+        bin = bin4feature(bb, feature, psize);
     }
     return bin;
 }

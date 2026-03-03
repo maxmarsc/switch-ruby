@@ -25,6 +25,9 @@ int main(int argc, char** argv) {
     ruby_sysinit(&argc, &argv);
     RUBY_INIT_STACK;
     ruby_init();
+    // Load the built-in features
+    extern void rb_call_builtin_inits(void);
+    rb_call_builtin_inits();
     ruby_init_loadpath();
 
     // Load the assert definitions for the tests.
