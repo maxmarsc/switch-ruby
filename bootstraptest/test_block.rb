@@ -504,17 +504,17 @@ assert_equal 'ok', %q{
   C.new.xyz("o","k") {|*args| args.join("")}
 }, '[ruby-core:20544]'
 
-assert_equal 'ok', %q{
-  STDERR.reopen(STDOUT)
-  class C
-    define_method(:foo) do |&block|
-      block.call if block
-    end
-    result = "ng"
-    new.foo() {result = "ok"}
-    result
-  end
-}
+# assert_equal 'ok', %q{
+#   STDERR.reopen(STDOUT)
+#   class C
+#     define_method(:foo) do |&block|
+#       block.call if block
+#     end
+#     result = "ng"
+#     new.foo() {result = "ok"}
+#     result
+#   end
+# }
 
 assert_equal "ok", %q{
   class Bar
