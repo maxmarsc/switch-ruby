@@ -83,11 +83,23 @@ int main(int argc, char** argv) {
     }
 
     const char* files[] = {
+        "./.ruby/bootstraptest/test_literal.rb",
+        "./.ruby/bootstraptest/test_literal_suffix.rb",
         "./.ruby/bootstraptest/test_struct.rb",
         "./.ruby/bootstraptest/test_string.rb",
         "./.ruby/bootstraptest/test_attr.rb",
         "./.ruby/bootstraptest/test_block.rb",
         "./.ruby/bootstraptest/test_class.rb",
+        "./.ruby/bootstraptest/test_flow.rb",
+        "./.ruby/bootstraptest/test_flip.rb",
+        "./.ruby/bootstraptest/test_syntax.rb",
+        "./.ruby/bootstraptest/test_method.rb",
+        "./.ruby/bootstraptest/test_jump.rb",
+        "./.ruby/bootstraptest/test_massign.rb",
+        "./.ruby/bootstraptest/test_proc.rb",
+        "./.ruby/bootstraptest/test_eval.rb",
+        "./.ruby/bootstraptest/test_exception.rb",
+        "./.ruby/bootstraptest/test_constant_cache.rb",
         // ...
         NULL
     };

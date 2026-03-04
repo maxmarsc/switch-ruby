@@ -1,4 +1,7 @@
 # btest_shim.rb
+def target_platform
+  "switch"
+end
 $bt_passed = 0
 $bt_failed = 0
 $bt_errors = []
