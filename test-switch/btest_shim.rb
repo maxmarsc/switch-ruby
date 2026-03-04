@@ -53,3 +53,28 @@ rescue Exception => e
   $bt_failed += 1
   $bt_errors << "ERROR #{caller(1).first} #{msg}: #{e.class}: #{e.message}"
 end
+
+def assert_valid_syntax(testsrc, message = '')
+  begin
+    RubyVM::InstructionSequence.compile(testsrc)
+  rescue SyntaxError => e
+    raise "#{message}: syntax error: #{e.message}"
+  end
+end
+
+def assert_not_match(unexpected_pattern, testsrc, message = '')
+  result = eval(testsrc).to_s
+  if unexpected_pattern =~ result
+    raise "#{message}: #{unexpected_pattern.inspect} matched #{result.inspect}"
+  end
+end
+
+def assert_normal_exit(testsrc, message = '')
+  begin
+    eval(testsrc)
+  rescue SystemExit
+    # ok — explicit exit is fine
+  rescue => e
+    raise "#{message}: #{e.class}: #{e.message}"
+  end
+end
