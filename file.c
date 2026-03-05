@@ -3858,6 +3858,23 @@ append_fspath(VALUE result, VALUE fname, char *dir, rb_encoding **enc, rb_encodi
     return buf + dirlen;
 }
 
+#ifdef __SWITCH__
+// libnx devoptab paths like "romfs:/file" or "sdmc:/file" are absolute.
+// These are handled by newlib's devoptab layer via fopen/stat/opendir.
+static int
+is_switch_devoptab_path(const char *path)
+{
+    const char *colon = strchr(path, ':');
+    if (colon && colon > path && colon[1] == '/') {
+        for (const char *p = path; p < colon; p++) {
+            if (!ISALNUM(*p) && *p != '_') return 0;
+        }
+        return 1;
+    }
+    return 0;
+}
+#endif
+
 VALUE
 rb_file_expand_path_internal(VALUE fname, VALUE dname, int abs_mode, int long_name, VALUE result)
 {
@@ -3870,6 +3887,15 @@ rb_file_expand_path_internal(VALUE fname, VALUE dname, int abs_mode, int long_na
     fend = s + RSTRING_LEN(fname);
     enc = rb_enc_get(fname);
     BUFINIT();
+
+#ifdef __SWITCH__
+    if (is_switch_devoptab_path(s)) {
+        rb_str_set_len(result, 0);
+        rb_str_cat(result, s, fend - s);
+        rb_enc_associate(result, enc);
+        return result;
+    }
+#endif
 
     if (s[0] == '~' && abs_mode == 0) {      /* execute only if NOT absolute_path() */
         long userlen = 0;
@@ -6380,6 +6406,9 @@ rb_file_const(const char *name, VALUE value)
 int
 rb_is_absolute_path(const char *path)
 {
+#ifdef __SWITCH__
+    if (is_switch_devoptab_path(path)) return 1;
+#endif
 #ifdef DOSISH_DRIVE_LETTER
     if (has_drive_letter(path) && isdirsep(path[2])) return 1;
 #endif

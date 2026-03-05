@@ -6,6 +6,7 @@ endif
 
 # Default to release if not specified
 BUILD ?= release
+ROMFS_DIR := romfs
 
 ifeq ($(BUILD),debug)
     # Append debug flags
@@ -87,7 +88,7 @@ $(NACP):
 	$(DEVKITPRO)/tools/bin/nacptool --create "Ruby Bootstrap Test" "dev" "0.1.0" $@
 
 $(NRO): $(ELF) $(NACP)
-	$(DEVKITPRO)/tools/bin/elf2nro $< $@ --nacp=$(NACP)
+	$(DEVKITPRO)/tools/bin/elf2nro $< $@ --nacp=$(NACP) --romfsdir=$(ROMFS_DIR)
 
 clean:
 	rm -f $(OBJS) $(ELF) $(NRO) $(NACP)

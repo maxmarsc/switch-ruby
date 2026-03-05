@@ -490,6 +490,8 @@ fiber_pool_allocate_memory(size_t * count, size_t stride)
             *count = (*count) >> 1;
         }
         else {
+            // mmap guarantees zero-initialized memory, memalign does not.
+            memset(base, 0, (*count)*stride);
             return base;
         }
 #else

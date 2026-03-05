@@ -38,7 +38,6 @@ int waitForDebugger(PadState* pad) {
 
 int main(int argc, char** argv) {
     // initialize console and socket for nxlink
-    printf("Initializing console and socket for nxlink...\n");
     consoleInit(NULL);
     socketInitializeDefault();
     nxlinkStdio();
@@ -65,7 +64,8 @@ int main(int argc, char** argv) {
     // Load the assert definitions for the tests.
     printf("Loading test shim...\n");
     int shim_state = 0;
-    rb_load_protect(rb_str_new_cstr("./.ruby/bootstraptest/btest_shim.rb"), 0, &shim_state);
+    romfsInit();
+    rb_load_protect(rb_str_new_cstr("romfs:/btest_shim.rb"), 0, &shim_state);
     if (shim_state != 0) {
         VALUE err = rb_errinfo();
         VALUE inspected = rb_inspect(err);
@@ -77,29 +77,30 @@ int main(int argc, char** argv) {
             padUpdate(&pad);
             if (padGetButtonsDown(&pad) & HidNpadButton_Plus) break;
         }
+        ruby_cleanup(0);
         socketExit();
         consoleExit(NULL);
         return 1;
     }
 
     const char* files[] = {
-        "./.ruby/bootstraptest/test_literal.rb",
-        "./.ruby/bootstraptest/test_literal_suffix.rb",
-        "./.ruby/bootstraptest/test_struct.rb",
-        "./.ruby/bootstraptest/test_string.rb",
-        "./.ruby/bootstraptest/test_attr.rb",
-        "./.ruby/bootstraptest/test_block.rb",
-        "./.ruby/bootstraptest/test_class.rb",
-        "./.ruby/bootstraptest/test_flow.rb",
-        "./.ruby/bootstraptest/test_flip.rb",
-        "./.ruby/bootstraptest/test_syntax.rb",
-        "./.ruby/bootstraptest/test_method.rb",
-        "./.ruby/bootstraptest/test_jump.rb",
-        "./.ruby/bootstraptest/test_massign.rb",
-        "./.ruby/bootstraptest/test_proc.rb",
-        "./.ruby/bootstraptest/test_eval.rb",
-        "./.ruby/bootstraptest/test_exception.rb",
-        "./.ruby/bootstraptest/test_constant_cache.rb",
+        "romfs:/bootstraptest/test_literal.rb",
+        "romfs:/bootstraptest/test_literal_suffix.rb",
+        "romfs:/bootstraptest/test_struct.rb",
+        "romfs:/bootstraptest/test_string.rb",
+        "romfs:/bootstraptest/test_attr.rb",
+        "romfs:/bootstraptest/test_block.rb",
+        "romfs:/bootstraptest/test_class.rb",
+        "romfs:/bootstraptest/test_flow.rb",
+        "romfs:/bootstraptest/test_flip.rb",
+        "romfs:/bootstraptest/test_syntax.rb",
+        "romfs:/bootstraptest/test_method.rb",
+        "romfs:/bootstraptest/test_jump.rb",
+        "romfs:/bootstraptest/test_massign.rb",
+        "romfs:/bootstraptest/test_proc.rb",
+        "romfs:/bootstraptest/test_eval.rb",
+        "romfs:/bootstraptest/test_exception.rb",
+        "romfs:/bootstraptest/test_constant_cache.rb",
         // ...
         NULL
     };
