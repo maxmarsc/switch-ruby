@@ -905,6 +905,9 @@ assert_normal_exit %q{
   end
 }, '[ruby-core:30293]'
 
+# Skipped: requires per-process CLI flags (--enable/disable-frozen-string-literal)
+# which can't be toggled in embedded mode.
+if /switch/ !~ target_platform
 assert_equal "false", <<~RUBY, "literal strings are mutable", "--disable-frozen-string-literal"
   'test'.frozen?
 RUBY
@@ -936,3 +939,4 @@ RUBY
 assert_equal "false", <<~RUBY, "__FILE__ is mutable", "--enable-frozen-string-literal", frozen_string_literal: false
   __FILE__.frozen?
 RUBY
+end

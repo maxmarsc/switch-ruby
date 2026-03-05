@@ -324,8 +324,11 @@ rb_update_max_fd(int fd)
 void
 rb_maygvl_fd_fix_cloexec(int fd)
 {
+#if defined(__SWITCH__)
+    // No exec() on Horizon OS, close-on-exec is meaningless.
+    return;
   /* MinGW don't have F_GETFD and FD_CLOEXEC.  [ruby-core:40281] */
-#if defined(HAVE_FCNTL) && defined(F_GETFD) && defined(F_SETFD) && defined(FD_CLOEXEC)
+#elif defined(HAVE_FCNTL) && defined(F_GETFD) && defined(F_SETFD) && defined(FD_CLOEXEC)
     int flags, flags2, ret;
     flags = fcntl(fd, F_GETFD); /* should not fail except EBADF. */
     if (flags == -1) {

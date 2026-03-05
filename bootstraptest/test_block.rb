@@ -504,7 +504,6 @@ assert_equal 'ok', %q{
   C.new.xyz("o","k") {|*args| args.join("")}
 }, '[ruby-core:20544]'
 
-if /switch/ !~ target_platform
 assert_equal 'ok', %q{
   STDERR.reopen(STDOUT)
   class C
@@ -516,7 +515,6 @@ assert_equal 'ok', %q{
     result
   end
 }
-end
 
 assert_equal "ok", %q{
   class Bar

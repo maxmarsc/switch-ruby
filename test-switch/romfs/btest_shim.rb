@@ -2,6 +2,9 @@
 def target_platform
   "switch"
 end
+def rjit_enabled?
+  false
+end
 $bt_passed = 0
 $bt_failed = 0
 $bt_errors = []
@@ -63,7 +66,11 @@ def assert_valid_syntax(testsrc, message = '')
 end
 
 def assert_not_match(unexpected_pattern, testsrc, message = '')
-  result = eval(testsrc).to_s
+  begin
+    result = eval(testsrc).to_s
+  rescue Exception => e
+    result = e.message
+  end
   if unexpected_pattern =~ result
     raise "#{message}: #{unexpected_pattern.inspect} matched #{result.inspect}"
   end
