@@ -96,11 +96,11 @@ int main(int argc, char** argv) {
         "romfs:/bootstraptest/test_syntax.rb",
         "romfs:/bootstraptest/test_method.rb",
         "romfs:/bootstraptest/test_jump.rb",
-        "romfs:/bootstraptest/test_massign.rb",
-        "romfs:/bootstraptest/test_proc.rb",
         "romfs:/bootstraptest/test_eval.rb",
         "romfs:/bootstraptest/test_exception.rb",
         "romfs:/bootstraptest/test_constant_cache.rb",
+        "romfs:/bootstraptest/test_proc.rb",
+        "romfs:/bootstraptest/test_massign.rb",
         // ...
         NULL
     };
@@ -109,6 +109,8 @@ int main(int argc, char** argv) {
     int passed = 0, failed = 0;
     for (int i = 0; files[i]; i++) {
         int state = run_file(files[i]);
+        // Reset GC.stress after each test file — some tests enable it globally
+        rb_eval_string_protect("GC.stress = false", &state);
         if (state == 0) {
             printf("%s[PASS]%s %s\n", CONSOLE_GREEN, CONSOLE_RESET,files[i]);
             passed++;
