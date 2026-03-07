@@ -126,6 +126,8 @@ int main(int argc, char** argv) {
     }
 
     printf("\n%d passed, %d failed\n", passed, failed);
+    printf("Waiting for [+] button to exit\n");
+    consoleUpdate(NULL);
     ruby_cleanup(0);
 
     while (appletMainLoop()) {
