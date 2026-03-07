@@ -18,6 +18,7 @@ volatile bool gdb_wait = true;
 int waitForDebugger(PadState* pad) {
   printf(
       "Waiting for debugger or [-] button to start or [+] button to exit\n");
+  consoleUpdate(NULL);
   while (appletMainLoop() && gdb_wait) {
     padUpdate(pad);
     u64 k_down = padGetButtonsDown(pad);
