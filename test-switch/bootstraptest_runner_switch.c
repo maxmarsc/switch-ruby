@@ -11,6 +11,29 @@ int run_file(const char* path) {
     return state; // 0 = success
 }
 
+static void check_poisoned_region() {
+      // Count ALL poisoned regions
+      extern char* fake_heap_start;
+      extern char* fake_heap_end;
+      MemoryInfo meminfo;
+      u32 pageinfo;
+      uintptr_t addr = (uintptr_t)fake_heap_start;
+      uintptr_t end = (uintptr_t)fake_heap_end;
+      int count = 0;
+
+      while (addr < end) {
+          svcQueryMemory(&meminfo, &pageinfo, addr);
+          if (meminfo.perm != Perm_Rw) {
+              printf("poisoned[%d]: %p size=0x%lx perm=0x%x type=0x%x\n",
+                    count, (void*)meminfo.addr, meminfo.size, meminfo.perm, meminfo.type);
+              count++;
+          }
+          addr = meminfo.addr + meminfo.size;
+      }
+      printf("Total poisoned regions: %d\n", count);
+      consoleUpdate(NULL);
+    }
+
 #if defined(WAIT_FOR_DEBUGGER)
 //NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 volatile bool gdb_wait = true;
@@ -53,6 +76,8 @@ int main(int argc, char** argv) {
     }
 #endif
 
+    // check_poisoned_region();
+
     printf("Initializing Ruby...\n");
     ruby_sysinit(&argc, &argv);
     RUBY_INIT_STACK;
@@ -85,23 +110,31 @@ int main(int argc, char** argv) {
     }
 
     const char* files[] = {
+        // core language
         "romfs:/bootstraptest/test_literal.rb",
         "romfs:/bootstraptest/test_literal_suffix.rb",
         "romfs:/bootstraptest/test_struct.rb",
         "romfs:/bootstraptest/test_string.rb",
         "romfs:/bootstraptest/test_attr.rb",
-        "romfs:/bootstraptest/test_block.rb",
         "romfs:/bootstraptest/test_class.rb",
+        "romfs:/bootstraptest/test_massign.rb",
         "romfs:/bootstraptest/test_flow.rb",
         "romfs:/bootstraptest/test_flip.rb",
         "romfs:/bootstraptest/test_syntax.rb",
+        "romfs:/bootstraptest/test_block.rb",
         "romfs:/bootstraptest/test_method.rb",
+        "romfs:/bootstraptest/test_proc.rb",
         "romfs:/bootstraptest/test_jump.rb",
         "romfs:/bootstraptest/test_eval.rb",
         "romfs:/bootstraptest/test_exception.rb",
         "romfs:/bootstraptest/test_constant_cache.rb",
-        "romfs:/bootstraptest/test_proc.rb",
-        "romfs:/bootstraptest/test_massign.rb",
+        // slightly higher-level features
+        "romfs:/bootstraptest/test_fiber.rb",
+        "romfs:/bootstraptest/test_gc.rb",
+        "romfs:/bootstraptest/test_objectspace.rb",
+        "romfs:/bootstraptest/test_marshal.rb",
+        "romfs:/bootstraptest/test_insns.rb",
+        // crashy boy
         // ...
         NULL
     };
@@ -112,6 +145,8 @@ int main(int argc, char** argv) {
         int state = run_file(files[i]);
         // Reset GC.stress after each test file — some tests enable it globally
         rb_eval_string_protect("GC.stress = false", &state);
+        // Make sure we collect dead objects like thread to avoid leaks
+        rb_eval_string_protect("GC.start", &state);
         if (state == 0) {
             printf("%s[PASS]%s %s\n", CONSOLE_GREEN, CONSOLE_RESET,files[i]);
             passed++;
@@ -122,6 +157,7 @@ int main(int argc, char** argv) {
             rb_set_errinfo(Qnil);
             failed++;
         }
+        // check_poisoned_region();
         consoleUpdate(NULL);
     }
 
