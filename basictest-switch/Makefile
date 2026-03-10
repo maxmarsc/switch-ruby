@@ -1,4 +1,4 @@
-# test-switch/Makefile — Build a Switch NRO that runs Ruby bootstrap tests
+# basictest-switch/Makefile — Build a Switch NRO that runs Ruby bootstrap tests
 
 ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
@@ -64,12 +64,12 @@ RUBY_LIBS  = -lruby-static \
 SYS_LIBS   = -lnx -lm -lz
 
 # ── Targets ──
-TARGET     = bootstraptest_runner_switch
+TARGET     = basictest_runner_switch
 ELF        = $(TARGET).elf
 NRO        = $(TARGET).nro
 NACP       = $(TARGET).nacp
 
-SRCS       = bootstraptest_runner_switch.c
+SRCS       = basictest_runner_switch.c
 OBJS       = $(SRCS:.c=.o)
 
 .PHONY: all clean nro
@@ -85,7 +85,7 @@ $(ELF): $(OBJS)
 	$(CC) $(LDFLAGS) $^ $(RUBY_LIBS) $(SYS_LIBS) -o $@
 
 $(NACP):
-	$(DEVKITPRO)/tools/bin/nacptool --create "Ruby Bootstrap Test" "dev" "0.1.0" $@
+	$(DEVKITPRO)/tools/bin/nacptool --create "Ruby Basic Test" "dev" "0.1.0" $@
 
 $(NRO): $(ELF) $(NACP)
 	$(DEVKITPRO)/tools/bin/elf2nro $< $@ --nacp=$(NACP) --romfsdir=$(ROMFS_DIR)

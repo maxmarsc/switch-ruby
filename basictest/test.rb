@@ -1820,6 +1820,7 @@ $proc.call(5)
 $proc2.call
 test_ok($x == 5)
 
+unless /aarch64-elf/ =~ RUBY_PLATFORM
 if defined? Process.kill
   test_check "signal"
 
@@ -1843,6 +1844,7 @@ if defined? Process.kill
   end
   test_ok(x && /Interrupt/ =~ x.message)
 end
+end # not /aarch64-elf/ =~ RUBY_PLATFORM
 
 test_check "eval"
 test_ok(eval("") == nil)
@@ -1961,7 +1963,7 @@ test_ok(i7 == nil)
 end
 
 # WASI doesn't support spawning a new process for now.
-unless /wasi/ =~ RUBY_PLATFORM
+unless /wasi|aarch64-elf/ =~ RUBY_PLATFORM
 test_check "system"
 test_ok(`echo foobar` == "foobar\n")
 test_ok(`./miniruby -e 'print "foobar"'` == 'foobar')
@@ -2012,7 +2014,7 @@ test_ok(done)
 
 File.unlink script_tmp or `/bin/rm -f "#{script_tmp}"`
 File.unlink "#{script_tmp}.bak" or `/bin/rm -f "#{script_tmp}.bak"`
-end # not /wasi/ =~ RUBY_PLATFORM
+end # not /wasi|aarch64-elf/ =~ RUBY_PLATFORM
 
 test_check "const"
 TEST1 = 1

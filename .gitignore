@@ -283,7 +283,7 @@ lcov*.info
 
 # Switch
 ext/Setup.switch
-test-switch/*.o
-test-switch/*.elf
-test-switch/*.nacp
-test-switch/*.nro
+*test-switch/*.o
+*test-switch/*.elf
+*test-switch/*.nacp
+*test-switch/*.nro
