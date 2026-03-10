@@ -5,6 +5,9 @@
 #include <ruby.h>
 #include <stdio.h>
 
+
+extern bool rb_free_at_exit;
+
 int run_file(const char* path) {
     int state = 0;
     rb_load_protect(rb_str_new_cstr(path), 0, &state);
@@ -86,6 +89,8 @@ int main(int argc, char** argv) {
     extern void rb_call_builtin_inits(void);
     rb_call_builtin_inits();
     ruby_init_loadpath();
+    // don't forget to set this flag to make sure ruby_cleanup() clean everything up
+    rb_free_at_exit = true;
 
     // Load the assert definitions for the tests.
     printf("Loading test shim...\n");
@@ -134,8 +139,17 @@ int main(int argc, char** argv) {
         "romfs:/bootstraptest/test_objectspace.rb",
         "romfs:/bootstraptest/test_marshal.rb",
         "romfs:/bootstraptest/test_insns.rb",
-        // crashy boy
-        // ...
+        "romfs:/bootstraptest/test_ractor.rb",
+        "romfs:/bootstraptest/test_thread.rb",
+        // partial support
+        // "romfs:/bootstraptest/test_env.rb",
+        // "romfs:/bootstraptest/test_io.rb",
+        // NOT SUPPORTED
+        // "romfs:/bootstraptest/test_fork.rb",
+        // "romfs:/bootstraptest/test_load.rb",
+        // "romfs:/bootstraptest/test_autoload.rb",
+        // "romfs:/bootstraptest/test_rjit.rb",
+        // "romfs:/bootstraptest/test_finalizer.rb",
         NULL
     };
 
@@ -145,7 +159,7 @@ int main(int argc, char** argv) {
         int state = run_file(files[i]);
         // Reset GC.stress after each test file — some tests enable it globally
         rb_eval_string_protect("GC.stress = false", &state);
-        // Make sure we collect dead objects like thread to avoid leaks
+        // Make sure we collect dead objects like threads to avoid leaks between tests
         rb_eval_string_protect("GC.start", &state);
         if (state == 0) {
             printf("%s[PASS]%s %s\n", CONSOLE_GREEN, CONSOLE_RESET,files[i]);

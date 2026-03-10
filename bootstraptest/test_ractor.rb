@@ -214,9 +214,9 @@ assert_equal '[:a, :b, :c, :d, :e, :f, :g]', %q{
 ###
 ###
 # Ractor still has several memory corruption so skip huge number of tests
-if ENV['GITHUB_WORKFLOW'] &&
+if /switch/ =~ target_platform || (ENV['GITHUB_WORKFLOW'] &&
    (ENV['GITHUB_WORKFLOW'] == 'Compilations' ||
-   ENV['GITHUB_WORKFLOW'] == 'ModGC')
+   ENV['GITHUB_WORKFLOW'] == 'ModGC'))
    # ignore the follow
 else
 
@@ -1852,7 +1852,8 @@ assert_equal 'true', %q{
   shareable = Ractor.make_shareable("chilled")
   shareable == "chilled" && Ractor.shareable?(shareable)
 }
-
+    
+if /switch/ !~ target_platform
 # require in Ractor
 assert_equal 'true', %q{
   Module.new do
@@ -1939,6 +1940,7 @@ assert_equal 'LoadError', %q{
   end
   r.take
 }
+end
 
 # Using Symbol#to_proc inside ractors
 # [Bug #21354]

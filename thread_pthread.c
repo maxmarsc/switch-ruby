@@ -1793,7 +1793,7 @@ native_thread_destroy(struct rb_native_thread *nt)
         // Join the native thread to ensure libnx calls threadClose -> svcUnmapMemory,
         // restoring Perm_Rw on the stack pages. Skip for the current thread (main thread
         // during shutdown) to avoid deadlock.
-        if (!pthread_equal(nt->thread_id, pthread_self())) {
+        if (nt->thread_id && !pthread_equal(nt->thread_id, pthread_self())) {
             pthread_join(nt->thread_id, NULL);
         }
 #endif
