@@ -141,10 +141,9 @@ int main(int argc, char** argv) {
         "romfs:/bootstraptest/test_insns.rb",
         "romfs:/bootstraptest/test_ractor.rb",
         "romfs:/bootstraptest/test_thread.rb",
-        // partial support
-        // "romfs:/bootstraptest/test_env.rb",
-        // "romfs:/bootstraptest/test_io.rb",
+        "romfs:/bootstraptest/test_env.rb",
         // NOT SUPPORTED
+        // "romfs:/bootstraptest/test_io.rb",
         // "romfs:/bootstraptest/test_fork.rb",
         // "romfs:/bootstraptest/test_load.rb",
         // "romfs:/bootstraptest/test_autoload.rb",
