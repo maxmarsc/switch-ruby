@@ -287,3 +287,4 @@ ext/Setup.switch
 *test-switch/*.elf
 *test-switch/*.nacp
 *test-switch/*.nro
+*test-switch/romfs/build/*
