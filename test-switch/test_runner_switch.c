@@ -40,7 +40,7 @@ int rubyWork() {
   {
     int load_path_state;
     rb_eval_string_protect(
-        "$LOAD_PATH.unshift('romfs:/lib', 'romfs:/tool/lib', 'romfs:/build')", 
+        "$LOAD_PATH.unshift('romfs:/lib', 'romfs:/tool/lib', 'romfs:/build', 'romfs:/ext/date/lib')", 
         &load_path_state
     );
     if (load_path_state != 0) {
@@ -110,7 +110,11 @@ int main(int argc, char** argv) {
     }
 
     // Actually running the tests, test/unit seems to register test to run at exit ?
-    ruby_cleanup(0);
+    int status = ruby_cleanup(0);
+    printf("\n%s%s%s\n", 
+        status == 0 ? CONSOLE_GREEN : CONSOLE_RED,
+        status == 0 ? "[PASS] ALL TESTS PASSED" : "[FAIL] SOME TESTS FAILED",
+        CONSOLE_RESET);
 
     printf("Waiting for [+] button to exit\n");
     consoleUpdate(NULL);
