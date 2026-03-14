@@ -355,6 +355,7 @@ cat > ../ext/Setup.switch <<'EOF'
 option nodynamic
 rbconfig/sizeof
 strscan
+continuation
 EOF
 
 ../configure \
@@ -403,7 +404,7 @@ EOF
     \
     `# ── Extensions to include (comma-separated) ──` \
     `# --with-ext=json,stringio,pathname,digest,socket,zlib` \
-    --with-ext='rbconfig/sizeof,strscan' \
+    --with-ext='rbconfig/sizeof,strscan,continuation' \
     \
     `# ── Extensions to exclude (comma-separated) ──` \
     `# --with-out-ext='-test-,gdbm,dbm,readline,pty,syslog,fiddle,nkf,openssl,psych,json,stringio,pathname,digest,socket,zlib'` \
