@@ -4617,7 +4617,11 @@ rb_check_realpath_internal(VALUE basedir, VALUE path, rb_encoding *origenc, enum
     }
 
     unresolved_path = rb_str_dup_frozen(path);
-    if (*RSTRING_PTR(unresolved_path) != '/' && !NIL_P(basedir)) {
+    if (*RSTRING_PTR(unresolved_path) != '/'
+#ifdef __SWITCH__
+            && !is_switch_devoptab_path(RSTRING_PTR(unresolved_path))
+#endif
+            && !NIL_P(basedir)) {
         unresolved_path = rb_file_join(rb_assoc_new(basedir, unresolved_path));
     }
     if (origenc) unresolved_path = TO_OSPATH(unresolved_path);

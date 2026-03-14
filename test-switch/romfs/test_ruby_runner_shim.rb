@@ -111,18 +111,21 @@ test/ruby/test_data
 test/ruby/test_defined
 test/ruby/test_dup
 test/ruby/test_enum
-test/ruby/test_exception
 test/ruby/test_fixnum
 test/ruby/test_float
 test/ruby/test_frozen
 test/ruby/test_class
-test/ruby/test_enumerator
+test/ruby/test_eval
+test/ruby/test_flip
 =end
 
 # Load test files
 %w[
+  test/ruby/test_exception
+  test/ruby/test_fixnum
+  test/ruby/test_float
+  test/ruby/test_enumerator
   test/ruby/test_eval
-  test/ruby/test_flip
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
@@ -131,10 +134,14 @@ test/ruby/test_enumerator
   end
 end
 
+# These tests make use of disabled features like subprocess
 SWITCH_SKIP_TESTS = {
   "TestBasicInstructions" => %w[test_xstr],
   "TestEval" => %w[test_eval_with_toplevel_binding],
   "TestFlip" => %w[test_input_line_number_range],
+  # test_warning_warn_circular_require_backtrace is limited by how the FS works
+  # it looks like directory entries are not committed until the fd is closed
+  "TestException" => %w[test_thread_signal_location test_full_message test_warning_warn_circular_require_backtrace]
 }
 
 SWITCH_SKIP_TESTS.each do |klass_name, methods|
