@@ -109,9 +109,11 @@ int main(int argc, char** argv) {
       return 1;
     }
 
+    // Actually running the tests, test/unit seems to register test to run at exit ?
+    ruby_cleanup(0);
+
     printf("Waiting for [+] button to exit\n");
     consoleUpdate(NULL);
-    ruby_cleanup(0);
 
     while (appletMainLoop()) {
         consoleUpdate(NULL);
