@@ -36,7 +36,7 @@ class Dir
         # We call File.writable?, not stat.writable?, because you can't tell if a dir is actually
         # writable just from stat; OS mechanisms other than user/group/world bits can affect this.
         warn "#{name} is not writable: #{dir}"
-      when stat.world_writable? && !stat.sticky?
+      when stat.world_writable? && !stat.sticky? && /aarch64-elf/ !~ RUBY_PLATFORM
         warn "#{name} is world-writable: #{dir}"
       else
         break dir
@@ -107,7 +107,7 @@ class Dir
         unless base
           base = File.dirname(path)
           stat = File.stat(base)
-          if stat.world_writable? and !stat.sticky?
+          if stat.world_writable? and !stat.sticky? and /aarch64-elf/ !~ RUBY_PLATFORM
             raise ArgumentError, "parent directory is world writable but not sticky: #{base}"
           end
         end
