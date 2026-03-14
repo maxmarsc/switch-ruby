@@ -33,6 +33,43 @@ int waitForDebugger(PadState* pad) {
 }
 #endif
 
+int rubyWork() {
+  // Add pure-ruby load paths
+  printf("Setting up load path...\n");
+  consoleUpdate(NULL);
+  {
+    int load_path_state;
+    rb_eval_string_protect(
+        "$LOAD_PATH.unshift('romfs:/lib', 'romfs:/tool/lib', 'romfs:/build')", 
+        &load_path_state
+    );
+    if (load_path_state != 0) {
+      VALUE err = rb_errinfo();
+      VALUE inspected_err = rb_inspect(err);
+      printf("%s[ERROR]%s Failed to set up load path: %s\n", CONSOLE_RED, CONSOLE_RESET, StringValueCStr(inspected_err));
+      consoleUpdate(NULL);
+      rb_set_errinfo(Qnil);
+      return 1;
+    }
+  }
+
+  // Call the test runner
+  printf("Running tests...\n");
+  consoleUpdate(NULL);
+  int state = 0;
+  rb_load_protect(rb_str_new_cstr("romfs:/test_ruby_runner_shim.rb"), 0, &state);
+  if (state != 0) {
+    VALUE err = rb_errinfo();
+    VALUE inspected_err = rb_inspect(err);
+    printf("%s[ERROR]%s Failed to load test runner: %s\n", CONSOLE_RED, CONSOLE_RESET, StringValueCStr(inspected_err));
+    consoleUpdate(NULL);
+    rb_set_errinfo(Qnil);
+    return 1;
+  }
+
+  return 0;
+}
+
 
 int main(int argc, char** argv) {
     // initialize console and socket for nxlink
@@ -50,63 +87,28 @@ int main(int argc, char** argv) {
     }
 #endif
 
+    char * ruby_opts[] = {argv[0], "-e", ""};
+
     printf("Initializing Ruby...\n");
     ruby_sysinit(&argc, &argv);
     RUBY_INIT_STACK;
     ruby_init();
-    // Load the built-in features
-    extern void rb_call_builtin_inits(void);
-    extern void Init_ext(void);
-    Init_ext(); /* load statically linked extensions before rubygems */
-    rb_call_builtin_inits();
-    ruby_init_loadpath();
+    // Load the built-in features & extensions
+    ruby_options(3, ruby_opts);
+    romfsInit();
 
     // don't forget to set this flag to make sure ruby_cleanup() clean everything up
     rb_free_at_exit = true;
 
-    // initialize romfs
-    romfsInit();
-
-    // Add pure-ruby load paths
-    printf("Setting up load path...\n");
+    printf("Starting ruby work:\n");
     consoleUpdate(NULL);
-    {
-      int load_path_state;
-      rb_eval_string_protect(
-          "$LOAD_PATH.unshift('romfs:/lib', 'romfs:/tool/lib', 'romfs:/build')", 
-          &load_path_state
-      );
-      if (load_path_state != 0) {
-        VALUE err = rb_errinfo();
-        VALUE inspected_err = rb_inspect(err);
-        printf("%s[ERROR]%s Failed to set up load path: %s\n", CONSOLE_RED, CONSOLE_RESET, StringValueCStr(inspected_err));
-        consoleUpdate(NULL);
-        rb_set_errinfo(Qnil);
-        ruby_cleanup(0);
-        socketExit();
-        consoleExit(NULL);
-        return 1;
-      }
-    }
-
-    // Call the test runner
-    printf("Running tests...\n");
-    consoleUpdate(NULL);
-    int state = 0;
-    rb_load_protect(rb_str_new_cstr("romfs:/test_ruby_runner_shim.rb"), 0, &state);
-    if (state != 0) {
-      VALUE err = rb_errinfo();
-      VALUE inspected_err = rb_inspect(err);
-      printf("%s[ERROR]%s Failed to load test runner: %s\n", CONSOLE_RED, CONSOLE_RESET, StringValueCStr(inspected_err));
-      consoleUpdate(NULL);
-      rb_set_errinfo(Qnil);
+    if (rubyWork()) {
       ruby_cleanup(0);
       socketExit();
       consoleExit(NULL);
       return 1;
     }
 
-    // printf("\n%d passed, %d failed\n", passed, failed);
     printf("Waiting for [+] button to exit\n");
     consoleUpdate(NULL);
     ruby_cleanup(0);
