@@ -109,15 +109,21 @@ test/ruby/test_frozen
 test/ruby/test_class
 test/ruby/test_eval
 test/ruby/test_flip
+test/ruby/test_exception
+test/ruby/test_enumerator
 =end
+
 
 # Load test files
 %w[
-  test/ruby/test_exception
-  test/ruby/test_fixnum
-  test/ruby/test_float
-  test/ruby/test_enumerator
-  test/ruby/test_eval
+  test/ruby/test_frozen_error
+  test/ruby/test_ifunless
+  test/ruby/test_inlinecache
+  test/ruby/test_integer
+  test/ruby/test_integer_comb
+  test/ruby/test_key_error
+  test/ruby/test_iterator
+  test/ruby/test_hash
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
