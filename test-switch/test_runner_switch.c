@@ -229,12 +229,12 @@ int main(int argc, char** argv) {
     printf("Waiting for [+] button to exit\n");
     consoleUpdate(NULL);
 
-    while (appletMainLoop()) {
-        svcSleepThread(100000000);  // 100ms
-        consoleUpdate(NULL);
-        padUpdate(&pad);
-        if (padGetButtonsDown(&pad) & HidNpadButton_Plus) break;
-    }
+    // while (appletMainLoop()) {
+    //     svcSleepThread(100000000);  // 100ms
+    //     consoleUpdate(NULL);
+    //     padUpdate(&pad);
+    //     if (padGetButtonsDown(&pad) & HidNpadButton_Plus) break;
+    // }
 
     socketExit();
     consoleExit(NULL);

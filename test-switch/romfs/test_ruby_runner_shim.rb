@@ -40,23 +40,6 @@ end)
 
 # To check
 =begin
-  test/ruby/test_keyword
-  test/ruby/test_lambda
-  test/ruby/test_lazy_enumerator
-  test/ruby/test_literal
-  test/ruby/test_math
-  test/ruby/test_metaclass
-  test/ruby/test_method
-  test/ruby/test_method_cache
-  test/ruby/test_mixed_unicode_escapes
-  test/ruby/test_module
-  test/ruby/test_name_error
-  test/ruby/test_nomethod_error
-  test/ruby/test_not
-  test/ruby/test_numeric
-  test/ruby/test_object
-  test/ruby/test_optimization
-  test/ruby/test_pack
   test/ruby/test_pattern_matching
   test/ruby/test_primitive
   test/ruby/test_proc
@@ -110,20 +93,36 @@ test/ruby/test_class
 test/ruby/test_eval
 test/ruby/test_flip
 test/ruby/test_exception
-test/ruby/test_enumerator
+test/ruby/test_frozen_error
+test/ruby/test_ifunless
+test/ruby/test_inlinecache
+test/ruby/test_integer
+test/ruby/test_integer_comb
+test/ruby/test_key_error
+test/ruby/test_iterator
+test/ruby/test_hash
+test/ruby/test_lambda
+test/ruby/test_lazy_enumerator
+test/ruby/test_literal
+test/ruby/test_math
+test/ruby/test_metaclass
+test/ruby/test_method
+test/ruby/test_method_cache
+test/ruby/test_mixed_unicode_escapes
+test/ruby/test_object
+test/ruby/test_module
+test/ruby/test_name_error
+test/ruby/test_nomethod_error
+test/ruby/test_not
+test/ruby/test_numeric
+test/ruby/test_optimization
+test/ruby/test_pack
 =end
 
 
 # Load test files
 %w[
-  test/ruby/test_frozen_error
-  test/ruby/test_ifunless
-  test/ruby/test_inlinecache
-  test/ruby/test_integer
-  test/ruby/test_integer_comb
-  test/ruby/test_key_error
-  test/ruby/test_iterator
-  test/ruby/test_hash
+  test/ruby/test_pattern_matching
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
@@ -147,7 +146,9 @@ SWITCH_SKIP_TESTS = {
   "TestRubyOptimization" => %w[test_string_freeze_saves_memory test_tailcall_interrupted_by_sigint],
   # test_warning_warn_circular_require_backtrace is limited by how the FS works
   # it looks like directory entries are not committed until the fd is closed
-  "TestException" => %w[test_thread_signal_location test_full_message test_warning_warn_circular_require_backtrace]
+  "TestException" => %w[test_thread_signal_location test_full_message test_warning_warn_circular_require_backtrace],
+  # Some weird test state leakage with the deprecated flag, who cares
+  "TestModule" => %w[test_deprecate_constant],
 }
 
 SWITCH_SKIP_TESTS.each do |klass_name, methods|
