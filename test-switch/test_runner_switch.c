@@ -153,6 +153,7 @@ int rubyWork() {
       return 1;
     }
   }
+
   // Call the test runner
   printf("Running tests...\n");
   consoleUpdate(NULL);
