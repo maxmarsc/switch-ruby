@@ -304,7 +304,7 @@ rb_update_max_fd(int fd)
     if (fd < 0 || afd <= max_fd)
         return;
 
-#if defined(HAVE_FCNTL) && defined(F_GETFL)
+#if defined(HAVE_FCNTL) && defined(F_GETFL) && !defined(__SWITCH__)
     err = fcntl(fd, F_GETFL) == -1;
 #else
     {
@@ -454,6 +454,22 @@ rb_cloexec_dup2(int oldfd, int newfd)
 #endif
         if (ret < 0) return ret;
     }
+
+#ifdef __SWITCH__
+    // On Switch, dup/fcntl(F_DUPFD) may return a fd number for
+    // devoptab file descriptors (romfs, sdmc) but the fd is not
+    // actually functional. Validate with fstat.
+    {
+        struct stat buf;
+        if (fstat(ret, &buf) != 0) {
+            int e = errno;
+            close(ret);
+            errno = (e == EBADF) ? ENOSYS : e;
+            return -1;
+        }
+    }
+#endif
+
     rb_maygvl_fd_fix_cloexec(ret);
     return ret;
 }
@@ -522,6 +538,20 @@ rb_cloexec_fcntl_dupfd(int fd, int minfd)
         if (ret != -1) {
             if (ret <= 2)
                 rb_maygvl_fd_fix_cloexec(ret);
+#if defined(__SWITCH__)
+            // On Switch, fcntl(F_DUPFD_CLOEXEC) may return a fd number for
+            // devoptab file descriptors (romfs, sdmc) but the fd is not
+            // actually functional. Validate with fstat.
+            {
+                struct stat buf;
+                if (fstat(ret, &buf) != 0) {
+                    int e = errno;
+                    close(ret);
+                    errno = (e == EBADF) ? ENOSYS : e;
+                    return -1;
+                }
+            }
+#endif
             return ret;
         }
         /* F_DUPFD_CLOEXEC is available since Linux 2.6.24.  Linux 2.6.18 fails with EINVAL */
@@ -547,6 +577,22 @@ rb_cloexec_fcntl_dupfd(int fd, int minfd)
     return ret;
 #endif
     if (ret < 0) return ret;
+
+#ifdef __SWITCH__
+    // On Switch, dup/fcntl(F_DUPFD) may return a fd number for
+    // devoptab file descriptors (romfs, sdmc) but the fd is not
+    // actually functional. Validate with fstat.
+    {
+        struct stat buf;
+        if (fstat(ret, &buf) != 0) {
+            int e = errno;
+            close(ret);
+            errno = (e == EBADF) ? ENOSYS : e;
+            return -1;
+        }
+    }
+#endif
+
     rb_maygvl_fd_fix_cloexec(ret);
     return ret;
 }
