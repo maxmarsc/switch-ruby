@@ -1042,7 +1042,9 @@ class TestObject < Test::Unit::TestCase
     assert_not_initialize_copy {Enumerator::Generator.new {}}
     assert_not_initialize_copy {Enumerator::Yielder.new {}}
     assert_not_initialize_copy {File.stat(__FILE__)}
-    assert_not_initialize_copy {open(__FILE__)}.each(&:close)
+    if /aarch64-elf/ !~ RUBY_PLATFORM  # Disable this test on the switch, fd dup is not supported
+      assert_not_initialize_copy {open(__FILE__)}.each(&:close)
+    end
     assert_not_initialize_copy {ARGF.class.new}
     assert_not_initialize_copy {Random.new}
     assert_not_initialize_copy {//}

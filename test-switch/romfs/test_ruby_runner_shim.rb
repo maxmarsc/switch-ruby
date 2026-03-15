@@ -132,11 +132,19 @@ test/ruby/test_enumerator
   end
 end
 
+# Ignored for now because of -test- dependency
+=begin
+test/ruby/test_enumerator
+test/ruby/test_keyword
+=end
+
 # These tests make use of disabled features like subprocess
 SWITCH_SKIP_TESTS = {
   "TestBasicInstructions" => %w[test_xstr],
   "TestEval" => %w[test_eval_with_toplevel_binding],
   "TestFlip" => %w[test_input_line_number_range],
+  "TestRubyLiteral" => %w[test_xstring],
+  "TestRubyOptimization" => %w[test_string_freeze_saves_memory test_tailcall_interrupted_by_sigint],
   # test_warning_warn_circular_require_backtrace is limited by how the FS works
   # it looks like directory entries are not committed until the fd is closed
   "TestException" => %w[test_thread_signal_location test_full_message test_warning_warn_circular_require_backtrace]
