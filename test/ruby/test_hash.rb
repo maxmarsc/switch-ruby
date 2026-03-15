@@ -2135,7 +2135,13 @@ class TestHashOnly < Test::Unit::TestCase
 
   def test_iterlevel_in_ivar_bug19589
     h = { a: nil }
-    hash_iter_recursion(h, 200)
+    if /aarch64-elf/ =~ RUBY_PLATFORM
+      # On the switch the stack size is usually ~1MB, 200 iterations
+      # tends to stack overflow
+      hash_iter_recursion(h, 150)
+    else
+      hash_iter_recursion(h, 200)
+    end
     assert true
   end
 
