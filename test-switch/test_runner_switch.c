@@ -122,7 +122,7 @@ int rubyWork() {
   {
     int load_path_state;
     rb_eval_string_protect(
-        "$LOAD_PATH.unshift('romfs:/lib', 'romfs:/tool/lib', 'romfs:/build', 'romfs:/ext/date/lib')", 
+        "$LOAD_PATH.unshift('romfs:/lib', 'romfs:/tool/lib', 'romfs:/build', 'romfs:/ext/date/lib', 'romfs:/ext/objspace/lib')", 
         &load_path_state
     );
     if (load_path_state != 0) {
@@ -206,7 +206,7 @@ int main(int argc, char** argv) {
     mkdir(RUBY_TMP_DIR, 0755);
     chmod(RUBY_TMP_DIR, 0755);
 
-    printf("Starting ruby work:\n");
+    // Starting ruby work
     consoleUpdate(NULL);
     if (rubyWork()) {
       ruby_cleanup(0);

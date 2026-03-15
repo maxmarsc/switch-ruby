@@ -1910,8 +1910,8 @@ get_stack(void **addr, size_t *size)
 #elif defined __SWITCH__
     STACK_GROW_DIR_DETECTION;
     Thread *t = threadGetSelf();
-    if (!t || !t->stack_mem) return -1;
-    *addr = t->stack_mem;
+    if (!t || !t->stack_mirror) return -1;
+    *addr = t->stack_mirror;
     *size = t->stack_sz;
     STACK_DIR_UPPER((void)0, (void)(*addr = (char *)*addr + *size));
 #else

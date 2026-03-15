@@ -40,14 +40,6 @@ end)
 
 # To check
 =begin
-  test/ruby/test_frozen_error
-  test/ruby/test_hash
-  test/ruby/test_ifunless
-  test/ruby/test_inlinecache
-  test/ruby/test_integer
-  test/ruby/test_integer_comb
-  test/ruby/test_iterator
-  test/ruby/test_key_error
   test/ruby/test_keyword
   test/ruby/test_lambda
   test/ruby/test_lazy_enumerator

@@ -358,6 +358,7 @@ strscan
 continuation
 date
 stringio
+objspace
 EOF
 
 ../configure \
@@ -406,7 +407,7 @@ EOF
     \
     `# ── Extensions to include (comma-separated) ──` \
     `# --with-ext=json,stringio,pathname,digest,socket,zlib` \
-    --with-ext='rbconfig/sizeof,strscan,continuation,date,stringio' \
+    --with-ext='rbconfig/sizeof,strscan,continuation,date,stringio,objspace' \
     \
     `# ── Extensions to exclude (comma-separated) ──` \
     `# --with-out-ext='-test-,gdbm,dbm,readline,pty,syslog,fiddle,nkf,openssl,psych,json,stringio,pathname,digest,socket,zlib'` \
