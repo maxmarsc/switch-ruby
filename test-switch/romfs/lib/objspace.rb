@@ -1,0 +1,1 @@
+../../../ext/objspace/lib/objspace.rb

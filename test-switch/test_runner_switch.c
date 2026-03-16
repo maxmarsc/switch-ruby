@@ -122,7 +122,7 @@ int rubyWork() {
   {
     int load_path_state;
     rb_eval_string_protect(
-        "$LOAD_PATH.unshift('romfs:/lib', 'romfs:/tool/lib', 'romfs:/build', 'romfs:/ext/date/lib', 'romfs:/ext/objspace/lib')", 
+        "$LOAD_PATH.unshift('romfs:/lib', 'romfs:/tool/lib', 'romfs:/build')", 
         &load_path_state
     );
     if (load_path_state != 0) {

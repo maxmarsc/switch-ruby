@@ -132,6 +132,9 @@ test/ruby/test_unicode_escape
 
 # Load test files
 %w[
+  test/ruby/test_hash
+  test/ruby/test_string
+  test/ruby/test_range
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
