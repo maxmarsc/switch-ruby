@@ -45,11 +45,13 @@ EOS
     assert_not_equal('ü', %w{\u{FC}}[0])
     assert_equal('\u00fc', "\\" + "u00fc")
 
-    # \u in %x strings
-    assert_match(/^("?)A\1$/, `echo "\u0041"`) #"
-    assert_match(/^("?)A\1$/, %x{echo "\u0041"}) #"
-    assert_match(/^("?)ü\1$/,
-      `#{EnvUtil.rubybin} -e "#coding:utf-8\nputs \\"\\u{FC}\\""`.force_encoding("utf-8")) #"
+    # \u in %x strings - skipped on the switch
+    if /aarch64-elf/ !~ RUBY_PLATFORM
+      assert_match(/^("?)A\1$/, `echo "\u0041"`) #"
+      assert_match(/^("?)A\1$/, %x{echo "\u0041"}) #"
+      assert_match(/^("?)ü\1$/,
+        `#{EnvUtil.rubybin} -e "#coding:utf-8\nputs \\"\\u{FC}\\""`.force_encoding("utf-8")) #"
+    end
 
     # \u in quoted symbols
     assert_equal(:A, :"\u0041")

@@ -51,15 +51,6 @@ end)
 
 # To check
 =begin
-  test/ruby/test_struct
-  test/ruby/test_super
-  test/ruby/test_symbol
-  test/ruby/test_undef
-  test/ruby/test_unicode_escape
-  test/ruby/test_variable
-  test/ruby/test_warning
-  test/ruby/test_whileuntil
-  test/ruby/test_yield
 =end
 
 # Passing
@@ -126,12 +117,21 @@ test/ruby/test_shapes
 test/ruby/test_sprintf
 test/ruby/test_sprintf_comb
 test/ruby/test_stringchar
+test/ruby/test_string
+test/ruby/test_struct
+test/ruby/test_super
+test/ruby/test_symbol
+test/ruby/test_undef
+test/ruby/test_variable
+test/ruby/test_warning
+test/ruby/test_whileuntil
+test/ruby/test_yield
+test/ruby/test_unicode_escape
 =end
 
 
 # Load test files
 %w[
-  test/ruby/test_string
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
@@ -148,7 +148,7 @@ test/ruby/test_call
 =end
 
 SWITCH_SKIP_TESTS = {
-  # These tests make use of disabled features like subprocess
+  # These tests make use of disabled features like subprocess, pipes...
   "TestBasicInstructions" => %w[test_xstr],
   "TestEval" => %w[test_eval_with_toplevel_binding],
   "TestFlip" => %w[test_input_line_number_range],
@@ -156,6 +156,10 @@ SWITCH_SKIP_TESTS = {
   "TestRubyOptimization" => %w[test_string_freeze_saves_memory test_tailcall_interrupted_by_sigint],
   "TestPatternMatching" => %w[test_literal_value_pattern],
   "TestRand" => %w[test_rand_reseed_on_fork],
+  "TestSymbol" => %w[test_hash_nondeterministic],
+  "TestStruct" => %w[test_struct_new],
+  # Rely on /dev/null, which we don't have
+  "TestString" => %w[test_clone test_uminus_no_embed_gc],
   # test_warning_warn_circular_require_backtrace is limited by how the FS works
   # it looks like directory entries are not committed until the fd is closed
   "TestException" => %w[test_thread_signal_location test_full_message test_warning_warn_circular_require_backtrace],
