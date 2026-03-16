@@ -38,22 +38,19 @@ Test::Unit::Runner.prepend(Module.new do
   end
 end)
 
+Test::Unit::TestCase.prepend(Module.new do
+  def run(*args, &block)
+    saved_deprecated = Warning[:deprecated]
+    saved_verbose = $VERBOSE
+    super
+  ensure
+    Warning[:deprecated] = saved_deprecated
+    $VERBOSE = saved_verbose
+  end
+end)
+
 # To check
 =begin
-  test/ruby/test_pattern_matching
-  test/ruby/test_primitive
-  test/ruby/test_proc
-  test/ruby/test_rand
-  test/ruby/test_random_formatter
-  test/ruby/test_range
-  test/ruby/test_rational
-  test/ruby/test_rational2
-  test/ruby/test_regexp
-  test/ruby/test_shapes
-  test/ruby/test_sprintf
-  test/ruby/test_sprintf_comb
-  test/ruby/test_string
-  test/ruby/test_stringchar
   test/ruby/test_struct
   test/ruby/test_super
   test/ruby/test_symbol
@@ -67,7 +64,6 @@ end)
 
 # Passing
 =begin
-test/ruby/test_range
 test/ruby/test_comparable
 test/ruby/test_array
 test/ruby/test_basicinstructions
@@ -117,12 +113,25 @@ test/ruby/test_not
 test/ruby/test_numeric
 test/ruby/test_optimization
 test/ruby/test_pack
+test/ruby/test_pattern_matching
+test/ruby/test_primitive
+test/ruby/test_proc
+test/ruby/test_rand
+test/ruby/test_random_formatter
+test/ruby/test_range
+test/ruby/test_rational
+test/ruby/test_rational2
+test/ruby/test_regexp
+test/ruby/test_shapes
+test/ruby/test_sprintf
+test/ruby/test_sprintf_comb
+test/ruby/test_stringchar
 =end
 
 
 # Load test files
 %w[
-  test/ruby/test_pattern_matching
+  test/ruby/test_string
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
@@ -135,15 +144,18 @@ end
 =begin
 test/ruby/test_enumerator
 test/ruby/test_keyword
+test/ruby/test_call
 =end
 
-# These tests make use of disabled features like subprocess
 SWITCH_SKIP_TESTS = {
+  # These tests make use of disabled features like subprocess
   "TestBasicInstructions" => %w[test_xstr],
   "TestEval" => %w[test_eval_with_toplevel_binding],
   "TestFlip" => %w[test_input_line_number_range],
   "TestRubyLiteral" => %w[test_xstring],
   "TestRubyOptimization" => %w[test_string_freeze_saves_memory test_tailcall_interrupted_by_sigint],
+  "TestPatternMatching" => %w[test_literal_value_pattern],
+  "TestRand" => %w[test_rand_reseed_on_fork],
   # test_warning_warn_circular_require_backtrace is limited by how the FS works
   # it looks like directory entries are not committed until the fd is closed
   "TestException" => %w[test_thread_signal_location test_full_message test_warning_warn_circular_require_backtrace],
