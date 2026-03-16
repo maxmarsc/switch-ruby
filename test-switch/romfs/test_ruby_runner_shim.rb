@@ -51,6 +51,19 @@ end)
 
 # To check
 =begin
+  test/ruby/test_sleep
+  test/ruby/test_stack
+  test/ruby/test_string_memory
+  test/ruby/test_syntax
+  test/ruby/test_thread
+  test/ruby/test_thread_cv
+  test/ruby/test_thread_queue
+  test/ruby/test_threadgroup
+  test/ruby/test_time
+  test/ruby/test_time_tz
+  test/ruby/test_transcode
+  test/ruby/test_weakkeymap
+  test/ruby/test_weakmap
 =end
 
 # Passing
@@ -127,14 +140,25 @@ test/ruby/test_warning
 test/ruby/test_whileuntil
 test/ruby/test_yield
 test/ruby/test_unicode_escape
+test/ruby/test_alias
+test/ruby/test_allocation
+test/ruby/test_arity
+test/ruby/test_beginendblock
+test/ruby/test_econv
+test/ruby/test_encoding
+test/ruby/test_fiber
 =end
 
 
 # Load test files
 %w[
-  test/ruby/test_hash
-  test/ruby/test_string
-  test/ruby/test_range
+  test/ruby/test_gc
+  test/ruby/test_m17n
+  test/ruby/test_m17n_comb
+  test/ruby/test_marshal
+  test/ruby/test_memory_view
+  test/ruby/test_objectspace
+  test/ruby/test_refinement
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
@@ -161,6 +185,7 @@ SWITCH_SKIP_TESTS = {
   "TestRand" => %w[test_rand_reseed_on_fork],
   "TestSymbol" => %w[test_hash_nondeterministic],
   "TestStruct" => %w[test_struct_new],
+  "TestBeginEndBlock" => %w[test_propagate_exit_code test_rescue_at_exit],
   # Rely on /dev/null, which we don't have
   "TestString" => %w[test_clone test_uminus_no_embed_gc],
   # test_warning_warn_circular_require_backtrace is limited by how the FS works
