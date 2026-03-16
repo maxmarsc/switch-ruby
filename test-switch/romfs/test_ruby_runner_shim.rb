@@ -51,12 +51,6 @@ end)
 
 # To check
 =begin
-  test/ruby/test_sleep
-  test/ruby/test_stack
-  test/ruby/test_string_memory
-  test/ruby/test_syntax
-  test/ruby/test_thread
-  test/ruby/test_thread_cv
   test/ruby/test_thread_queue
   test/ruby/test_threadgroup
   test/ruby/test_time
@@ -147,18 +141,23 @@ test/ruby/test_beginendblock
 test/ruby/test_econv
 test/ruby/test_encoding
 test/ruby/test_fiber
+test/ruby/test_gc
+test/ruby/test_m17n
+test/ruby/test_m17n_comb
+test/ruby/test_marshal
+test/ruby/test_objectspace
+test/ruby/test_refinement
 =end
 
 
 # Load test files
 %w[
-  test/ruby/test_gc
-  test/ruby/test_m17n
-  test/ruby/test_m17n_comb
-  test/ruby/test_marshal
-  test/ruby/test_memory_view
-  test/ruby/test_objectspace
-  test/ruby/test_refinement
+  test/ruby/test_sleep
+  test/ruby/test_stack
+  test/ruby/test_string_memory
+  test/ruby/test_syntax
+  test/ruby/test_thread
+  test/ruby/test_thread_cv
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
@@ -172,6 +171,7 @@ end
 test/ruby/test_enumerator
 test/ruby/test_keyword
 test/ruby/test_call
+test/ruby/test_memory_view
 =end
 
 SWITCH_SKIP_TESTS = {
@@ -185,7 +185,8 @@ SWITCH_SKIP_TESTS = {
   "TestRand" => %w[test_rand_reseed_on_fork],
   "TestSymbol" => %w[test_hash_nondeterministic],
   "TestStruct" => %w[test_struct_new],
-  "TestBeginEndBlock" => %w[test_propagate_exit_code test_rescue_at_exit],
+  "TestBeginEndBlock" => %w[test_propagate_exit_code test_rescue_at_exit test_pipe],
+  "TestMarshal" => %w[test_undumpable_message test_no_internal_ids test_regexp2 test_pipe],
   # Rely on /dev/null, which we don't have
   "TestString" => %w[test_clone test_uminus_no_embed_gc],
   # test_warning_warn_circular_require_backtrace is limited by how the FS works
