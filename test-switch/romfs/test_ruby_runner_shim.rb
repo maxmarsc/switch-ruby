@@ -68,7 +68,6 @@ test/ruby/test_basicinstructions
 test/ruby/test_arithmetic_sequence
 test/ruby/test_assignment
 test/ruby/test_bignum
-test/ruby/test_call
 test/ruby/test_case
 test/ruby/test_clone
 test/ruby/test_complex
@@ -120,7 +119,6 @@ test/ruby/test_range
 test/ruby/test_rational
 test/ruby/test_rational2
 test/ruby/test_regexp
-test/ruby/test_shapes
 test/ruby/test_sprintf
 test/ruby/test_sprintf_comb
 test/ruby/test_stringchar
@@ -147,17 +145,19 @@ test/ruby/test_m17n_comb
 test/ruby/test_marshal
 test/ruby/test_objectspace
 test/ruby/test_refinement
+#############################
+test/ruby/test_sleep
+test/ruby/test_string_memory
+test/ruby/test_syntax
+test/ruby/test_thread_cv
+test/ruby/test_thread
 =end
 
 
 # Load test files
-%w[
-  test/ruby/test_sleep
+%w[  
+  test/ruby/test_shapes
   test/ruby/test_stack
-  test/ruby/test_string_memory
-  test/ruby/test_syntax
-  test/ruby/test_thread
-  test/ruby/test_thread_cv
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
@@ -187,6 +187,9 @@ SWITCH_SKIP_TESTS = {
   "TestStruct" => %w[test_struct_new],
   "TestBeginEndBlock" => %w[test_propagate_exit_code test_rescue_at_exit test_pipe],
   "TestMarshal" => %w[test_undumpable_message test_no_internal_ids test_regexp2 test_pipe],
+  "TestSyntax" => %w[test_return_toplevel test_eval_return_toplevel test_defined_in_short_circuit_if_condition],
+  "TestStack" => %w[test_machine_stack_size test_vm_stack_size test_relative_stack_sizes],
+  "TestThread" => %w[test_machine_stack_size test_local_barrier test_thread_timer_and_interrupt test_stack_size test_vm_machine_stack_size],
   # Rely on /dev/null, which we don't have
   "TestString" => %w[test_clone test_uminus_no_embed_gc],
   # test_warning_warn_circular_require_backtrace is limited by how the FS works

@@ -360,6 +360,9 @@ date
 stringio
 objspace
 etc
+json
+json/parser
+json/generator
 EOF
 
 ../configure \
@@ -408,7 +411,7 @@ EOF
     \
     `# ── Extensions to include (comma-separated) ──` \
     `# --with-ext=json,stringio,pathname,digest,socket,zlib` \
-    --with-ext='rbconfig/sizeof,strscan,continuation,date,stringio,objspace,etc' \
+    --with-ext='rbconfig/sizeof,strscan,continuation,date,stringio,objspace,etc,json,json/parser,json/generator' \
     \
     `# ── Extensions to exclude (comma-separated) ──` \
     `# --with-out-ext='-test-,gdbm,dbm,readline,pty,syslog,fiddle,nkf,openssl,psych,json,stringio,pathname,digest,socket,zlib'` \
