@@ -51,12 +51,6 @@ end)
 
 # To check
 =begin
-test/ruby/test_parse          # may need ripper
-test/ruby/test_ast            # requires ripper/prism internals
-test/ruby/test_compile_prism  # prism compiler tests
-test/ruby/test_settracefunc   # tracing, may be fragile
-test/ruby/test_trace          # tracing
-test/ruby/test_backtrace      # may need subprocess for some tests
 =end
 
 # Passing
@@ -160,14 +154,25 @@ test/ruby/test_weakmap
 test/ruby/test_iseq
 test/ruby/test_rubyvm
 test/ruby/test_insns_leaf
+test/ruby/test_settracefunc
+test/ruby/test_trace
+test/ruby/test_backtrace
+test/ruby/test_parse
+test/ruby/test_ast
+test/ruby/test_compile_prism
+test/ruby/test_env
+test/ruby/test_require
+test/ruby/test_require_lib
+test/ruby/test_path
 =end
 
 
 # Load test files
 %w[
-  test/ruby/test_iseq
-  test/ruby/test_rubyvm
-  test/ruby/test_insns_leaf
+  test/ruby/test_env
+  test/ruby/test_require
+  test/ruby/test_require_lib
+  test/ruby/test_path
 ].each do |f|
     begin
       load "romfs:/#{f}.rb"
@@ -183,6 +188,8 @@ test/ruby/test_keyword
 test/ruby/test_call
 test/ruby/test_memory_view
 test/ruby/test_time_tz
+test/ruby/test_dir_m17n
+test/ruby/test_file
 =end
 
 # Ignored
@@ -192,6 +199,7 @@ test/ruby/test_shapes         # debug feature
 test/ruby/test_stack          # entirely dependant on subprocess
 test/ruby/test_default_gems   # tests gem loading
 test/ruby/test_vm_dump        # darwin-specific
+test/ruby/test_dir            # entirely dependant on unsupported fs behavior
 =end
 
 SWITCH_SKIP_TESTS = {
@@ -210,6 +218,8 @@ SWITCH_SKIP_TESTS = {
   "TestSyntax" => %w[test_return_toplevel test_eval_return_toplevel test_defined_in_short_circuit_if_condition],
   "TestStack" => %w[test_machine_stack_size test_vm_stack_size test_relative_stack_sizes],
   "TestThread" => %w[test_machine_stack_size test_local_barrier test_thread_timer_and_interrupt test_stack_size test_vm_machine_stack_size],
+  "TestSetTraceFunc" => %w[test_tracepoint_opt_invokebuiltin_delegate_leave],
+  "TestParse" => %w[test_xstring],
   # Rely on /dev/null, which we don't have
   "TestString" => %w[test_clone test_uminus_no_embed_gc],
   # Rely on /dev/null, subprocess, and unsupported fs behavior
@@ -227,6 +237,13 @@ SWITCH_SKIP_TESTS = {
   "TestTime" => %w[test_marshal_broken_zone],
   # Try to spawn too many threads at once,
   "TestThreadQueue" => %w[test_deny_pushers],
+  # Unsupported fs features
+  "TestRequire" => %w[
+    test_require_nonascii_path_utf8
+    test_load_ospath
+    test_provide_in_required_file
+    test_require_nonascii_path_shift_jis
+  ]
 }
 
 SWITCH_SKIP_TESTS.each do |klass_name, methods|
