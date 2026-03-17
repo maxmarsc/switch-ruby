@@ -51,13 +51,17 @@ end)
 
 # To check
 =begin
-  test/ruby/test_thread_queue
-  test/ruby/test_threadgroup
-  test/ruby/test_time
-  test/ruby/test_time_tz
-  test/ruby/test_transcode
-  test/ruby/test_weakkeymap
-  test/ruby/test_weakmap
+test/ruby/test_parse          # may need ripper
+test/ruby/test_ast            # requires ripper/prism internals
+test/ruby/test_compile_prism  # prism compiler tests
+test/ruby/test_default_gems   # tests gem loading
+test/ruby/test_iseq           # instruction sequence internals
+test/ruby/test_rubyvm         # VM internals
+test/ruby/test_insns_leaf     # instruction tests
+test/ruby/test_settracefunc   # tracing, may be fragile
+test/ruby/test_trace          # tracing
+test/ruby/test_vm_dump        # VM debug dump
+test/ruby/test_backtrace      # may need subprocess for some tests
 =end
 
 # Passing
@@ -151,27 +155,40 @@ test/ruby/test_string_memory
 test/ruby/test_syntax
 test/ruby/test_thread_cv
 test/ruby/test_thread
+test/ruby/test_thread_queue
+test/ruby/test_threadgroup
+test/ruby/test_time
+test/ruby/test_transcode
+test/ruby/test_weakkeymap
+test/ruby/test_weakmap
 =end
 
 
 # Load test files
-%w[  
-  test/ruby/test_shapes
-  test/ruby/test_stack
-].each do |f|
-  begin
-    load "romfs:/#{f}.rb"
-  rescue LoadError => e
-    puts "SKIP #{f}: #{e.message}"
+%w[
+  ].each do |f|
+    begin
+      load "romfs:/#{f}.rb"
+    rescue LoadError => e
+      puts "SKIP #{f}: #{e.message}"
+    end
   end
-end
-
-# Ignored for now because of -test- dependency
+  
+  # Ignored for now because of -test- dependency
 =begin
 test/ruby/test_enumerator
 test/ruby/test_keyword
 test/ruby/test_call
 test/ruby/test_memory_view
+test/ruby/test_time_tz
+=end
+
+# Ignored
+=begin
+# debug feature
+test/ruby/test_shapes
+# entirely dependant on subprocess
+test/ruby/test_stack
 =end
 
 SWITCH_SKIP_TESTS = {
@@ -197,6 +214,10 @@ SWITCH_SKIP_TESTS = {
   "TestException" => %w[test_thread_signal_location test_full_message test_warning_warn_circular_require_backtrace],
   # Some weird test state leakage with the deprecated flag, who cares
   "TestModule" => %w[test_deprecate_constant],
+  # I'm not sure about the tzset support
+  "TestTime" => %w[test_marshal_broken_zone],
+  # Try to spawn too many threads at once,
+  "TestThreadQueue" => %w[test_deny_pushers],
 }
 
 SWITCH_SKIP_TESTS.each do |klass_name, methods|
