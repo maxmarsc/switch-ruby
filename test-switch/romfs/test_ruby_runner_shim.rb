@@ -54,13 +54,8 @@ end)
 test/ruby/test_parse          # may need ripper
 test/ruby/test_ast            # requires ripper/prism internals
 test/ruby/test_compile_prism  # prism compiler tests
-test/ruby/test_default_gems   # tests gem loading
-test/ruby/test_iseq           # instruction sequence internals
-test/ruby/test_rubyvm         # VM internals
-test/ruby/test_insns_leaf     # instruction tests
 test/ruby/test_settracefunc   # tracing, may be fragile
 test/ruby/test_trace          # tracing
-test/ruby/test_vm_dump        # VM debug dump
 test/ruby/test_backtrace      # may need subprocess for some tests
 =end
 
@@ -161,12 +156,19 @@ test/ruby/test_time
 test/ruby/test_transcode
 test/ruby/test_weakkeymap
 test/ruby/test_weakmap
+#############################
+test/ruby/test_iseq
+test/ruby/test_rubyvm
+test/ruby/test_insns_leaf
 =end
 
 
 # Load test files
 %w[
-  ].each do |f|
+  test/ruby/test_iseq
+  test/ruby/test_rubyvm
+  test/ruby/test_insns_leaf
+].each do |f|
     begin
       load "romfs:/#{f}.rb"
     rescue LoadError => e
@@ -186,9 +188,10 @@ test/ruby/test_time_tz
 # Ignored
 =begin
 # debug feature
-test/ruby/test_shapes
-# entirely dependant on subprocess
-test/ruby/test_stack
+test/ruby/test_shapes         # debug feature
+test/ruby/test_stack          # entirely dependant on subprocess
+test/ruby/test_default_gems   # tests gem loading
+test/ruby/test_vm_dump        # darwin-specific
 =end
 
 SWITCH_SKIP_TESTS = {
@@ -209,6 +212,12 @@ SWITCH_SKIP_TESTS = {
   "TestThread" => %w[test_machine_stack_size test_local_barrier test_thread_timer_and_interrupt test_stack_size test_vm_machine_stack_size],
   # Rely on /dev/null, which we don't have
   "TestString" => %w[test_clone test_uminus_no_embed_gc],
+  # Rely on /dev/null, subprocess, and unsupported fs behavior
+  "TestISeq" => %w[
+    test_compile_empty_under_gc_stress
+    test_iseq_builtin_to_a
+    test_compile_file_encoding
+  ],
   # test_warning_warn_circular_require_backtrace is limited by how the FS works
   # it looks like directory entries are not committed until the fd is closed
   "TestException" => %w[test_thread_signal_location test_full_message test_warning_warn_circular_require_backtrace],
