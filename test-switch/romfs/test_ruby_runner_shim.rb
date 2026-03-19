@@ -174,15 +174,20 @@ test/ruby/test_env
 test/ruby/test_require
 test/ruby/test_require_lib
 test/ruby/test_path
+#############################
+test/ruby/test_enumerator
+test/ruby/test_call
+test/ruby/test_time_tz
+test/ruby/test_file
+test/ruby/test_keyword
+test/ruby/test_dir_m17n
 =end
 
 
 # Load test files
 %w[
-  test/ruby/test_enumerator
-  test/ruby/test_call
-  test/ruby/test_time_tz
-  test/ruby/test_file
+  test/ruby/test_keyword
+  test/ruby/test_dir_m17n
 ].each do |f|
     begin
       load "romfs:/#{f}.rb"
@@ -191,16 +196,6 @@ test/ruby/test_path
     end
   end
   
-  # Ignored for now because of -test- dependency
-=begin
-test/ruby/test_enumerator
-test/ruby/test_keyword
-test/ruby/test_call
-test/ruby/test_memory_view
-test/ruby/test_time_tz
-test/ruby/test_dir_m17n
-test/ruby/test_file
-=end
 
 # Ignored
 =begin
@@ -312,6 +307,20 @@ SWITCH_SKIP_TESTS = {
     test_c_rb_file_open_text_mode_write_lf
     test_c_rb_io_fdopen_bin_mode_read_crlf
   ],
+  # Relying on test/-ext- extensions
+  "TestKeywordArguments" => %w[
+    test_rb_yield_block_kwsplat
+    test_rb_call_super_kw_method_missing_kwsplat
+  ],
+  # Relying on test/-ext- extensions or devoptab limitations
+  "TestDir_M17N" => %w[
+    test_filename_extutf8_invalid
+    test_glob_compose
+    test_glob_encoding
+    test_pwd
+    test_entries_compose
+    test_inspect_nonascii
+  ]
 }
 
 SWITCH_SKIP_TESTS.each do |klass_name, methods|
