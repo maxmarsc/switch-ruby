@@ -603,6 +603,8 @@ class TestFile < Test::Unit::TestCase
     if /cygwin|mswin|mingw/ =~ RUBY_PLATFORM
       assert_file.absolute_path?("C:\\foo\\bar")
       assert_file.absolute_path?("C:/foo/bar")
+    elsif /aarch64-elf/ =~ RUBY_PLATFORM
+      assert_file.not_absolute_path?("C:\\foo\\bar")
     else
       assert_file.not_absolute_path?("C:\\foo\\bar")
       assert_file.not_absolute_path?("C:/foo/bar")

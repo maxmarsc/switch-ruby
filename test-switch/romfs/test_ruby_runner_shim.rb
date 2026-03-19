@@ -26,6 +26,7 @@ module Test::Unit::CoreAssertions
   end
 end
 
+# Add logging around test suite runs
 Test::Unit::Runner.prepend(Module.new do
   def _run_suite(suite, type)
     return super if suite.test_methods.empty?
@@ -38,6 +39,7 @@ Test::Unit::Runner.prepend(Module.new do
   end
 end)
 
+# Removed deprecation warnings from test output
 Test::Unit::TestCase.prepend(Module.new do
   def run(*args, &block)
     saved_deprecated = Warning[:deprecated]
@@ -48,6 +50,14 @@ Test::Unit::TestCase.prepend(Module.new do
     $VERBOSE = saved_verbose
   end
 end)
+
+# Stub out -test-/ extensions — they're C API test helpers.
+# Individual tests that need them will fail/skip gracefully.
+$LOADED_FEATURES << '-test-/rb_call_super_kw.so'
+$LOADED_FEATURES << '-test-/iter.so'
+$LOADED_FEATURES << '-test-/memory_view.so'
+$LOADED_FEATURES << '-test-/file.so'
+$LOADED_FEATURES << '-test-/time.so'
 
 # To check
 =begin
@@ -169,10 +179,10 @@ test/ruby/test_path
 
 # Load test files
 %w[
-  test/ruby/test_env
-  test/ruby/test_require
-  test/ruby/test_require_lib
-  test/ruby/test_path
+  test/ruby/test_enumerator
+  test/ruby/test_call
+  test/ruby/test_time_tz
+  test/ruby/test_file
 ].each do |f|
     begin
       load "romfs:/#{f}.rb"
@@ -200,6 +210,7 @@ test/ruby/test_stack          # entirely dependant on subprocess
 test/ruby/test_default_gems   # tests gem loading
 test/ruby/test_vm_dump        # darwin-specific
 test/ruby/test_dir            # entirely dependant on unsupported fs behavior
+test/ruby/test_memory_view    # ignored feature rb_memory_view_register / rb_memory_view_get
 =end
 
 SWITCH_SKIP_TESTS = {
@@ -243,7 +254,59 @@ SWITCH_SKIP_TESTS = {
     test_load_ospath
     test_provide_in_required_file
     test_require_nonascii_path_shift_jis
-  ]
+  ],
+  # Relying on pipes, fat32/devoptab limitations
+  "TestFile" => %w[
+    test_realpath_special_symlink
+    test_stat
+    test_realpath_encoding
+    test_initialize
+    test_bom_8
+    test_bom_16be
+    test_bom_16le
+    test_bom_32be
+    test_bom_32le
+    test_file_share_delete
+    test_unlink_before_close
+    test_truncate_beyond_eof
+    test_empty_file_bom
+    test_eof_1_seek
+    test_chmod_m17n
+    ],
+  # Relying on test/-ext- extensions
+  "TestCall" => %w[
+    test_call_ifunc_iseq_large_array_splat_pass
+    test_call_rb_call_iseq_large_array_splat_fail
+    test_call_rb_call_bmethod_large_array_splat_fail
+    test_call_rb_call_bmethod_large_array_splat_pass
+    test_call_ifunc_iseq_large_array_splat_fail
+    test_call_rb_call_iseq_large_array_splat_pass
+  ],
+  # Relying on test/-ext- extensions
+  "TestFile::NewlineConvTests" => %w[
+    test_c_rb_file_open_bin_mode_read_lf_with_utf8_encoding
+    test_c_rb_io_fdopen_text_mode_read_lf_with_utf8_encoding
+    test_c_rb_io_fdopen_bin_mode_read_lf
+    test_c_rb_file_open_text_mode_read_lf_with_utf8_encoding
+    test_c_rb_io_fdopen_bin_mode_write_crlf
+    test_c_rb_io_fdopen_bin_mode_write_lf
+    test_c_rb_io_fdopen_text_mode_read_crlf
+    test_c_rb_io_fdopen_bin_mode_read_lf_with_utf8_encoding
+    test_c_rb_file_open_bin_mode_read_crlf_with_utf8_encoding
+    test_c_rb_io_fdopen_text_mode_write_lf
+    test_c_rb_file_open_bin_mode_read_crlf
+    test_c_rb_io_fdopen_text_mode_read_lf
+    test_c_rb_file_open_text_mode_read_crlf_with_utf8_encoding
+    test_c_rb_io_fdopen_bin_mode_read_crlf_with_utf8_encoding
+    test_c_rb_file_open_bin_mode_read_lf
+    test_c_rb_io_fdopen_text_mode_read_crlf_with_utf8_encoding
+    test_c_rb_file_open_text_mode_read_crlf
+    test_c_rb_file_open_bin_mode_write_crlf
+    test_c_rb_file_open_text_mode_read_lf
+    test_c_rb_file_open_bin_mode_write_lf
+    test_c_rb_file_open_text_mode_write_lf
+    test_c_rb_io_fdopen_bin_mode_read_crlf
+  ],
 }
 
 SWITCH_SKIP_TESTS.each do |klass_name, methods|

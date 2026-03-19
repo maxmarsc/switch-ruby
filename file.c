@@ -187,6 +187,24 @@ char *getlogin(void) { return NULL; }
 #include "ruby/thread.h"
 #include "ruby/util.h"
 
+
+#ifdef __SWITCH__
+// libnx devoptab paths like "romfs:/file" or "sdmc:/file" are absolute.
+// These are handled by newlib's devoptab layer via fopen/stat/opendir.
+static int
+is_switch_devoptab_path(const char *path)
+{
+    const char *colon = strchr(path, ':');
+    if (colon && colon > path && colon[1] == '/') {
+        for (const char *p = path; p < colon; p++) {
+            if (!ISALNUM(*p) && *p != '_') return 0;
+        }
+        return 1;
+    }
+    return 0;
+}
+#endif
+
 VALUE rb_cFile;
 VALUE rb_mFileTest;
 VALUE rb_cStat;
@@ -3858,23 +3876,6 @@ append_fspath(VALUE result, VALUE fname, char *dir, rb_encoding **enc, rb_encodi
     return buf + dirlen;
 }
 
-#ifdef __SWITCH__
-// libnx devoptab paths like "romfs:/file" or "sdmc:/file" are absolute.
-// These are handled by newlib's devoptab layer via fopen/stat/opendir.
-static int
-is_switch_devoptab_path(const char *path)
-{
-    const char *colon = strchr(path, ':');
-    if (colon && colon > path && colon[1] == '/') {
-        for (const char *p = path; p < colon; p++) {
-            if (!ISALNUM(*p) && *p != '_') return 0;
-        }
-        return 1;
-    }
-    return 0;
-}
-#endif
-
 VALUE
 rb_file_expand_path_internal(VALUE fname, VALUE dname, int abs_mode, int long_name, VALUE result)
 {
@@ -4509,6 +4510,15 @@ rb_check_realpath_emulate(VALUE basedir, VALUE path, rb_encoding *origenc, enum 
     unresolved_path = TO_OSPATH(unresolved_path);
     RSTRING_GETMEM(unresolved_path, ptr, len);
     path_names = skipprefixroot(ptr, ptr + len, rb_enc_get(unresolved_path));
+#ifdef __SWITCH__
+    // skipprefixroot doesn't recognize "sdmc:/" or "romfs:/" as root.
+    // Detect devoptab prefix and skip past it manually.
+    if (ptr == path_names && is_switch_devoptab_path(ptr)) {
+        const char *colon = strchr(ptr, ':');
+        path_names = (char *)colon + 1;
+        while (*path_names == '/') path_names++;
+    }
+#endif
     if (ptr != path_names) {
         resolved = rb_str_subseq(unresolved_path, 0, path_names - ptr);
         goto root_found;
@@ -4517,6 +4527,13 @@ rb_check_realpath_emulate(VALUE basedir, VALUE path, rb_encoding *origenc, enum 
     if (!NIL_P(basedir)) {
         RSTRING_GETMEM(basedir, ptr, len);
         basedir_names = skipprefixroot(ptr, ptr + len, rb_enc_get(basedir));
+#ifdef __SWITCH__
+        if (ptr == basedir_names && is_switch_devoptab_path(ptr)) {
+            const char *colon = strchr(ptr, ':');
+            basedir_names = (char *)colon + 1;
+            while (*basedir_names == '/') basedir_names++;
+        }
+#endif
         if (ptr != basedir_names) {
             resolved = rb_str_subseq(basedir, 0, basedir_names - ptr);
             goto root_found;
@@ -4643,6 +4660,20 @@ rb_check_realpath_internal(VALUE basedir, VALUE path, rb_encoding *origenc, enum
         rb_sys_fail_path(unresolved_path);
     }
     resolved = ospath_new(resolved_ptr, strlen(resolved_ptr), rb_filesystem_encoding());
+
+#ifdef __SWITCH__
+    // newlib's realpath may return trailing slash for directories
+    {
+        long len = RSTRING_LEN(resolved);
+        const char *ptr = RSTRING_PTR(resolved);
+        while (len > 1 && ptr[len - 1] == '/') {
+            len--;
+        }
+        if (len != RSTRING_LEN(resolved)) {
+            rb_str_set_len(resolved, len);
+        }
+    }
+#endif
 # if !(defined(NEEDS_REALPATH_BUFFER) && NEEDS_REALPATH_BUFFER)
     free(resolved_ptr);
 # endif
