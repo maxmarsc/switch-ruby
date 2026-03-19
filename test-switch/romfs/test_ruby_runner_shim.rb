@@ -255,7 +255,7 @@ SWITCH_SKIP_TESTS = {
     test_provide_in_required_file
     test_require_nonascii_path_shift_jis
   ],
-  # Relying on pipes, fat32/devoptab limitations
+  # Relying on pipes or fat32/devoptab limitations, except for utime
   "TestFile" => %w[
     test_realpath_special_symlink
     test_stat
@@ -268,10 +268,15 @@ SWITCH_SKIP_TESTS = {
     test_bom_32le
     test_file_share_delete
     test_unlink_before_close
+    test_truncate_rbuf
     test_truncate_beyond_eof
+    test_truncate_wbuf
+    test_truncate_size
     test_empty_file_bom
+    test_eof_0_seek
     test_eof_1_seek
     test_chmod_m17n
+    test_utime
     ],
   # Relying on test/-ext- extensions
   "TestCall" => %w[
