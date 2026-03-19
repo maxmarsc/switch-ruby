@@ -184,17 +184,7 @@ test/ruby/test_dir_m17n
 =end
 
 
-# Load test files
-%w[
-  test/ruby/test_keyword
-  test/ruby/test_dir_m17n
-].each do |f|
-    begin
-      load "romfs:/#{f}.rb"
-    rescue LoadError => e
-      puts "SKIP #{f}: #{e.message}"
-    end
-  end
+
   
 
 # Ignored
@@ -323,9 +313,25 @@ SWITCH_SKIP_TESTS = {
   ]
 }
 
-SWITCH_SKIP_TESTS.each do |klass_name, methods|
-  klass = Object.const_get(klass_name) rescue next
-  methods.each do |m|
-    klass.undef_method(m) if klass.method_defined?(m)
+Test::Unit::TestCase.prepend(Module.new do
+  def setup
+    super
+    klass_name = self.class.name
+    method_name = __name__.to_s.sub(/\(.+\)$/, '')
+    if SWITCH_SKIP_TESTS[klass_name]&.include?(method_name)
+      omit "not supported on Switch"
+    end
   end
-end
+end)
+
+# Load test files
+%w[
+  test/ruby/test_keyword
+  test/ruby/test_dir_m17n
+].each do |f|
+    begin
+      load "romfs:/#{f}.rb"
+    rescue LoadError => e
+      puts "SKIP #{f}: #{e.message}"
+    end
+  end
