@@ -194,6 +194,9 @@ test/json/json_parser_test
 test/json/json_string_matching_test
 test/json/ractor_test
 test/json/test_helper
+########## STRSCAN EXT TESTS ##########
+test/strscan/test_ractor
+test/strscan/test_stringscanner
 =end
 
 # Ignored
@@ -210,17 +213,8 @@ test/ruby/test_memory_view    # ignored feature rb_memory_view_register / rb_mem
 
 # Load test files
 %w[
-  test/json/json_addition_test
-  test/json/json_common_interface_test
-  test/json/json_encoding_test
-  test/json/json_ext_parser_test
-  test/json/json_fixtures_test
-  test/json/json_generator_test
-  test/json/json_generic_object_test
-  test/json/json_parser_test
-  test/json/json_string_matching_test
-  test/json/ractor_test
-  test/json/test_helper
+  test/strscan/test_ractor
+  test/strscan/test_stringscanner
 ].each do |f|
     begin
       load "romfs:/#{f}.rb"
