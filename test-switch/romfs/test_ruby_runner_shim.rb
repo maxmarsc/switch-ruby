@@ -216,6 +216,8 @@ test/stringio/test_ractor
 ########## OBJSPACE EXT TESTS ##########
 test/objspace/test_ractor
 test/objspace/test_objspace
+########## ETC EXT TESTS ##########
+test/etc/test_etc
 =end
 
 # Ignored
@@ -232,8 +234,7 @@ test/ruby/test_memory_view    # ignored feature rb_memory_view_register / rb_mem
 
 # Load test files
 %w[
-  test/objspace/test_ractor
-  test/objspace/test_objspace
+  test/etc/test_etc
 ].each do |f|
     begin
       load "romfs:/#{f}.rb"
@@ -261,6 +262,7 @@ SWITCH_SKIP_TESTS = {
   "TestSetTraceFunc" => %w[test_tracepoint_opt_invokebuiltin_delegate_leave],
   "TestParse" => %w[test_xstring],
   "TestObjSpace" => %w[test_dump_to_io],
+  "TestEtc" => %w[test_nprocessors],
   # Rely on /dev/null, which we don't have
   "TestString" => %w[test_clone test_uminus_no_embed_gc],
   # Rely on /dev/null, subprocess, and unsupported fs behavior
