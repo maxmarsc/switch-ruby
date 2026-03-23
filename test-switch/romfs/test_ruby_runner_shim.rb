@@ -183,10 +183,6 @@ test/ruby/test_keyword
 test/ruby/test_dir_m17n
 =end
 
-
-
-  
-
 # Ignored
 =begin
 # debug feature
@@ -197,6 +193,130 @@ test/ruby/test_vm_dump        # darwin-specific
 test/ruby/test_dir            # entirely dependant on unsupported fs behavior
 test/ruby/test_memory_view    # ignored feature rb_memory_view_register / rb_memory_view_get
 =end
+
+
+# Load test files
+%w[
+  test/ruby/test_comparable
+  test/ruby/test_array
+  test/ruby/test_basicinstructions
+  test/ruby/test_arithmetic_sequence
+  test/ruby/test_assignment
+  test/ruby/test_bignum
+  test/ruby/test_case
+  test/ruby/test_clone
+  test/ruby/test_complex
+  test/ruby/test_complex2
+  test/ruby/test_complexrational
+  test/ruby/test_condition
+  test/ruby/test_const
+  test/ruby/test_data
+  test/ruby/test_defined
+  test/ruby/test_dup
+  test/ruby/test_enum
+  test/ruby/test_fixnum
+  test/ruby/test_float
+  test/ruby/test_frozen
+  test/ruby/test_class
+  test/ruby/test_eval
+  test/ruby/test_flip
+  test/ruby/test_exception
+  test/ruby/test_frozen_error
+  test/ruby/test_ifunless
+  test/ruby/test_inlinecache
+  test/ruby/test_integer
+  test/ruby/test_integer_comb
+  test/ruby/test_key_error
+  test/ruby/test_iterator
+  test/ruby/test_hash
+  test/ruby/test_lambda
+  test/ruby/test_lazy_enumerator
+  test/ruby/test_literal
+  test/ruby/test_math
+  test/ruby/test_metaclass
+  test/ruby/test_method
+  test/ruby/test_method_cache
+  test/ruby/test_mixed_unicode_escapes
+  test/ruby/test_object
+  test/ruby/test_module
+  test/ruby/test_name_error
+  test/ruby/test_nomethod_error
+  test/ruby/test_not
+  test/ruby/test_numeric
+  test/ruby/test_optimization
+  test/ruby/test_pack
+  test/ruby/test_pattern_matching
+  test/ruby/test_primitive
+  test/ruby/test_proc
+  test/ruby/test_rand
+  test/ruby/test_random_formatter
+  test/ruby/test_range
+  test/ruby/test_rational
+  test/ruby/test_rational2
+  test/ruby/test_regexp
+  test/ruby/test_sprintf
+  test/ruby/test_sprintf_comb
+  test/ruby/test_stringchar
+  test/ruby/test_string
+  test/ruby/test_struct
+  test/ruby/test_super
+  test/ruby/test_symbol
+  test/ruby/test_undef
+  test/ruby/test_variable
+  test/ruby/test_warning
+  test/ruby/test_whileuntil
+  test/ruby/test_yield
+  test/ruby/test_unicode_escape
+  test/ruby/test_alias
+  test/ruby/test_allocation
+  test/ruby/test_arity
+  test/ruby/test_beginendblock
+  test/ruby/test_econv
+  test/ruby/test_encoding
+  test/ruby/test_fiber
+  test/ruby/test_gc
+  test/ruby/test_m17n
+  test/ruby/test_m17n_comb
+  test/ruby/test_marshal
+  test/ruby/test_objectspace
+  test/ruby/test_refinement
+  test/ruby/test_sleep
+  test/ruby/test_string_memory
+  test/ruby/test_syntax
+  test/ruby/test_thread_cv
+  test/ruby/test_thread
+  test/ruby/test_thread_queue
+  test/ruby/test_threadgroup
+  test/ruby/test_time
+  test/ruby/test_transcode
+  test/ruby/test_weakkeymap
+  test/ruby/test_weakmap
+  test/ruby/test_iseq
+  test/ruby/test_rubyvm
+  test/ruby/test_insns_leaf
+  test/ruby/test_settracefunc
+  test/ruby/test_trace
+  test/ruby/test_backtrace
+  test/ruby/test_parse
+  test/ruby/test_ast
+  test/ruby/test_compile_prism
+  test/ruby/test_env
+  test/ruby/test_require
+  test/ruby/test_require_lib
+  test/ruby/test_path
+  test/ruby/test_enumerator
+  test/ruby/test_call
+  test/ruby/test_time_tz
+  test/ruby/test_file
+  test/ruby/test_keyword
+  test/ruby/test_dir_m17n
+].each do |f|
+    begin
+      load "romfs:/#{f}.rb"
+    rescue LoadError => e
+      puts "SKIP #{f}: #{e.message}"
+    end
+  end
 
 SWITCH_SKIP_TESTS = {
   # These tests make use of disabled features like subprocess, pipes...
@@ -313,25 +433,9 @@ SWITCH_SKIP_TESTS = {
   ]
 }
 
-Test::Unit::TestCase.prepend(Module.new do
-  def setup
-    super
-    klass_name = self.class.name
-    method_name = __name__.to_s.sub(/\(.+\)$/, '')
-    if SWITCH_SKIP_TESTS[klass_name]&.include?(method_name)
-      omit "not supported on Switch"
-    end
+SWITCH_SKIP_TESTS.each do |klass_name, methods|
+  klass = Object.const_get(klass_name) rescue next
+  methods.each do |m|
+    klass.undef_method(m) if klass.method_defined?(m)
   end
-end)
-
-# Load test files
-%w[
-  test/ruby/test_keyword
-  test/ruby/test_dir_m17n
-].each do |f|
-    begin
-      load "romfs:/#{f}.rb"
-    rescue LoadError => e
-      puts "SKIP #{f}: #{e.message}"
-    end
-  end
+end
