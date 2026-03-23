@@ -226,6 +226,19 @@ test/objspace/test_ractor
 test/objspace/test_objspace
 ########## ETC EXT TESTS ##########
 test/etc/test_etc
+########## RIPPER EXT TESTS ##########
+test/ripper/test_files_ext
+test/ripper/test_files_lib
+test/ripper/test_files_sample
+test/ripper/test_files_test
+test/ripper/test_files_test_1
+test/ripper/test_files_test_2
+test/ripper/test_filter
+test/ripper/test_lexer
+test/ripper/test_parser_events
+test/ripper/test_ripper
+test/ripper/test_scanner_events
+test/ripper/test_sexp
 =end
 
 # Ignored
@@ -242,8 +255,18 @@ test/ruby/test_memory_view    # ignored feature rb_memory_view_register / rb_mem
 
 # Load test files
 %w[
-  test/test_find
-  test/test_trick
+  test/ripper/test_files_ext
+  test/ripper/test_files_lib
+  test/ripper/test_files_sample
+  test/ripper/test_files_test
+  test/ripper/test_files_test_1
+  test/ripper/test_files_test_2
+  test/ripper/test_filter
+  test/ripper/test_lexer
+  test/ripper/test_parser_events
+  test/ripper/test_ripper
+  test/ripper/test_scanner_events
+  test/ripper/test_sexp
 ].each do |f|
     begin
       load "romfs:/#{f}.rb"
