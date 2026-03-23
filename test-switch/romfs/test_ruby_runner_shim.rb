@@ -149,7 +149,6 @@ test/ruby/test_m17n_comb
 test/ruby/test_marshal
 test/ruby/test_objectspace
 test/ruby/test_refinement
-#############################
 test/ruby/test_sleep
 test/ruby/test_string_memory
 test/ruby/test_syntax
@@ -161,7 +160,6 @@ test/ruby/test_time
 test/ruby/test_transcode
 test/ruby/test_weakkeymap
 test/ruby/test_weakmap
-#############################
 test/ruby/test_iseq
 test/ruby/test_rubyvm
 test/ruby/test_insns_leaf
@@ -175,13 +173,23 @@ test/ruby/test_env
 test/ruby/test_require
 test/ruby/test_require_lib
 test/ruby/test_path
-#############################
 test/ruby/test_enumerator
 test/ruby/test_call
 test/ruby/test_time_tz
 test/ruby/test_file
 test/ruby/test_keyword
 test/ruby/test_dir_m17n
+########## RUBY STDLIB ##########
+test/test_pp
+test/test_delegate
+test/test_forwardable
+test/test_shellwords
+test/test_singleton
+test/test_rbconfig
+test/test_tsort
+test/test_weakref
+test/test_find
+test/test_trick
 ########## JSON EXT TESTS ##########
 test/json/json_addition_test
 test/json/json_common_interface_test
@@ -234,7 +242,8 @@ test/ruby/test_memory_view    # ignored feature rb_memory_view_register / rb_mem
 
 # Load test files
 %w[
-  test/etc/test_etc
+  test/test_find
+  test/test_trick
 ].each do |f|
     begin
       load "romfs:/#{f}.rb"
@@ -280,6 +289,8 @@ SWITCH_SKIP_TESTS = {
   "TestTime" => %w[test_marshal_broken_zone],
   # Try to spawn too many threads at once,
   "TestThreadQueue" => %w[test_deny_pushers],
+  # Rely on chmod
+  "TestFind" => %w[test_unsearchable_dir],
   # Unsupported fs features
   "TestRequire" => %w[
     test_require_nonascii_path_utf8
