@@ -210,6 +210,9 @@ test/date/test_date
 test/date/test_date_strftime
 test/date/test_date_strptime
 test/date/test_switch_hitter
+########## STRINGIO EXT TESTS ##########
+test/stringio/test_stringio
+test/stringio/test_ractor
 =end
 
 # Ignored
@@ -226,18 +229,8 @@ test/ruby/test_memory_view    # ignored feature rb_memory_view_register / rb_mem
 
 # Load test files
 %w[
-  test/date/test_date_arith
-  test/date/test_date_attr
-  test/date/test_date_compat
-  test/date/test_date_conv
-  test/date/test_date_marshal
-  test/date/test_date_new
-  test/date/test_date_parse
-  test/date/test_date_ractor
-  test/date/test_date
-  test/date/test_date_strftime
-  test/date/test_date_strptime
-  test/date/test_switch_hitter
+  test/stringio/test_ractor
+  test/stringio/test_stringio
 ].each do |f|
     begin
       load "romfs:/#{f}.rb"
