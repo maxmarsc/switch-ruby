@@ -190,6 +190,11 @@ test/test_tsort
 test/test_weakref
 test/test_find
 test/test_trick
+test/test_securerandom
+test/test_time
+test/test_timeout
+test/test_tmpdir
+test/test_unicode_normalize
 ########## JSON EXT TESTS ##########
 test/json/json_addition_test
 test/json/json_common_interface_test
@@ -255,18 +260,7 @@ test/ruby/test_memory_view    # ignored feature rb_memory_view_register / rb_mem
 
 # Load test files
 %w[
-  test/ripper/test_files_ext
-  test/ripper/test_files_lib
-  test/ripper/test_files_sample
-  test/ripper/test_files_test
-  test/ripper/test_files_test_1
-  test/ripper/test_files_test_2
-  test/ripper/test_filter
-  test/ripper/test_lexer
-  test/ripper/test_parser_events
-  test/ripper/test_ripper
-  test/ripper/test_scanner_events
-  test/ripper/test_sexp
+  test/test_ipaddr
 ].each do |f|
     begin
       load "romfs:/#{f}.rb"
@@ -321,6 +315,8 @@ SWITCH_SKIP_TESTS = {
     test_provide_in_required_file
     test_require_nonascii_path_shift_jis
   ],
+  # Unsupported fs features
+  "TestTmpdir" => %w[test_world_writable],
   # Relying on pipes or fat32/devoptab limitations, except for utime
   "TestFile" => %w[
     test_realpath_special_symlink
