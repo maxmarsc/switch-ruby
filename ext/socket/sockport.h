@@ -109,7 +109,7 @@
 # define PF_INET AF_INET
 #endif
 
-#if defined(HOST_NOT_FOUND) && !defined(h_errno) && !defined(__CYGWIN__)
+#if defined(HOST_NOT_FOUND) && !defined(h_errno) && !defined(__CYGWIN__) && !defined(__SWITCH__)
 extern int h_errno;
 #endif
 

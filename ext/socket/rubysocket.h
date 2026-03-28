@@ -43,6 +43,11 @@
 #else
 #  include <sys/socket.h>
 #  include <netinet/in.h>
+#  if defined(__SWITCH__)
+    // Libnx provides these macros for compliance, but doesn't actually define the ipv6_mreq struct
+#    undef IPV6_JOIN_GROUP
+#    undef IPV6_LEAVE_GROUP
+#  endif
 #  ifdef HAVE_NETINET_IN_SYSTM_H
 #    include <netinet/in_systm.h>
 #  endif
@@ -418,7 +423,7 @@ char *host_str(VALUE host, char *hbuf, size_t hbuflen, int *flags_ptr);
 char *port_str(VALUE port, char *pbuf, size_t pbuflen, int *flags_ptr);
 
 #ifndef FAST_FALLBACK_INIT_INETSOCK_IMPL
-#  if !defined(HAVE_PTHREAD_CREATE) || !defined(HAVE_PTHREAD_DETACH) || defined(__MINGW32__) || defined(__MINGW64__)
+#  if !defined(HAVE_PTHREAD_CREATE) || !defined(HAVE_PTHREAD_DETACH) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__SWITCH__)
 #    define FAST_FALLBACK_INIT_INETSOCK_IMPL 0
 #  else
 #    include "ruby/thread_native.h"

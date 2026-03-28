@@ -1,6 +1,87 @@
 # frozen_string_literal: false
 require 'mkmf'
 
+if defined?(SWITCH_TARGET) && SWITCH_TARGET
+  # ── Headers libnx provides ──
+  %w[
+    sys/types.h netdb.h string.h sys/socket.h netinet/in.h
+    netinet/tcp.h netinet/udp.h arpa/inet.h
+    sys/ioctl.h sys/sockio.h net/if.h sys/param.h net/if_dl.h
+    pthread.h sched.h
+  ].each { |h| $defs << "-DHAVE_#{h.tr('/.', '_').upcase}" }
+
+  # ── Struct members ──
+  # sockaddr sa_len (BSD-style)
+  $defs << "-DHAVE_STRUCT_SOCKADDR_SA_LEN"
+  $defs << "-DHAVE_ST_SA_LEN"
+  $defs << "-DHAVE_STRUCT_SOCKADDR_IN_SIN_LEN"
+  $defs << "-DHAVE_ST_SIN_LEN"
+
+  # msghdr msg_control (ancillary data)
+  $defs << "-DHAVE_STRUCT_MSGHDR_MSG_CONTROL"
+  $defs << "-DHAVE_ST_MSG_CONTROL"
+
+  # ── Types libnx provides ──
+  $defs << "-DHAVE_TYPE_STRUCT_SOCKADDR_DL"
+  $defs << "-DHAVE_TYPE_STRUCT_SOCKADDR_STORAGE"
+  $defs << "-DHAVE_TYPE_STRUCT_ADDRINFO"
+  $defs << "-DHAVE_TYPE_SOCKLEN_T"
+  $defs << "-DRSTRING_SOCKLEN=(socklen_t)RSTRING_LENINT"
+  $defs << "-DHAVE_TYPE_STRUCT_IP_MREQ"
+  $defs << "-DHAVE_TYPE_STRUCT_IP_MREQN"
+
+  # ── TCP_INFO (libnx provides BSD-style tcp_info) ──
+  $defs << "-DHAVE_TYPE_STRUCT_TCP_INFO"
+  %w[
+    tcpi_state tcpi_options tcpi_rto
+    tcpi_snd_mss tcpi_rcv_mss tcpi_last_data_recv
+    tcpi_rtt tcpi_rttvar tcpi_snd_ssthresh tcpi_snd_cwnd
+    tcpi_rcv_space
+    tcpi_snd_wnd tcpi_snd_bwnd tcpi_snd_nxt tcpi_rcv_nxt
+    tcpi_toe_tid tcpi_snd_rexmitpack tcpi_rcv_ooopack
+    tcpi_snd_zerowin
+  ].each do |member|
+    $defs << "-DHAVE_STRUCT_TCP_INFO_#{member.upcase}"
+    $defs << "-DHAVE_ST_#{member.upcase}"
+  end
+
+  # ── Functions libnx provides ──
+  %w[
+    sendmsg recvmsg freeaddrinfo gai_strerror
+    inet_ntop inet_pton getservbyport
+    gethostname getaddrinfo getnameinfo
+    socket
+    pthread_create pthread_detach pthread_attr_setdetachstate
+  ].each { |f| $defs << "-DHAVE_#{f.upcase}" }
+
+  $defs << "-DGAI_STRERROR_CONST"
+  $defs << "-DENABLE_IPV6"
+  $defs << "-DINET6"
+
+  # ── Intentionally omitted ──
+  # HAVE_SOCKETPAIR          - requires AF_UNIX, not functional on libnx
+  # HAVE_CONST_AF_UNIX       - constant exists but Unix domain sockets don't work
+  # HAVE_CONST_SCM_RIGHTS    - constant exists but fd-passing doesn't work
+  # FD_PASSING_WORK_WITH_RECVMSG_MSG_PEEK - false positive from cross-compile
+  # HAVE_FREEHOSTENT         - suspicious detection, not needed
+  # HAVE_STRUCT_IF_DATA_IFI_VHID - FreeBSD-specific, false detection from BSD headers
+  # HAVE_TYPE_STRUCT_SOCKADDR_UN - Unix domain sockets not functional
+  # HAVE_TYPE_STRUCT_IPV6_MREQ  - constant exists but struct not defined in libnx
+
+  $objs = %w[
+    init constants basicsocket socket ipsocket
+    tcpsocket tcpserver sockssocket udpsocket
+    unixsocket unixserver option ancdata raddrinfo ifaddr
+  ].map { |f| "#{f}.#{$OBJEXT}" }
+
+  $INCFLAGS << " -I$(topdir) -I$(top_srcdir)"
+  $VPATH << '$(topdir)' << '$(top_srcdir)'
+
+  $distcleanfiles << "constants.h" << "constdefs.*"
+
+  create_makefile("socket")
+else
+
 AF_INET6_SOCKET_CREATION_TEST = <<EOF
 #include <sys/types.h>
 #ifndef _WIN32
@@ -708,4 +789,5 @@ SRC
 
   $VPATH << '$(topdir)' << '$(top_srcdir)'
   create_makefile("socket")
+end
 end

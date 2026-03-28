@@ -50,7 +50,7 @@ if [ -z "${NATIVE_BUILD:-}" ]; then
     exit 1
 fi
 
-NATIVE_MINIRUBY="${PWD}/miniruby -I${NATIVE_BUILD} -I${PWD}/../lib -I${PWD}/.ext/common"
+NATIVE_MINIRUBY="${PWD}/miniruby -r${PWD}/../switch_cross_compiling_setup.rb -I${PWD} -I${NATIVE_BUILD} -I${PWD}/../lib -I${PWD}/.ext/common"
 
 # =============================================================================
 # 2) Compiler/linker flags — matching CMake toolchain
@@ -234,7 +234,7 @@ CACHE_OVERRIDES=(
     # ─── Misc: absent or not useful ───
     ac_cv_func_dup3=no
     ac_cv_func_crypt_r=no
-    ac_cv_func_ioctl=no             # set =yes if libnx provides ioctl for sockets
+    ac_cv_func_ioctl=yes             # set =yes if libnx provides ioctl for sockets
     ac_cv_func_syscall=no
     ac_cv_func_statx=no
     ac_cv_func_backtrace=no
@@ -364,6 +364,7 @@ json
 json/parser
 json/generator
 ripper
+socket
 EOF
 
 ../configure \
@@ -412,7 +413,7 @@ EOF
     \
     `# ── Extensions to include (comma-separated) ──` \
     `# --with-ext=json,stringio,pathname,digest,socket,zlib` \
-    --with-ext='rbconfig/sizeof,strscan,continuation,date,stringio,objspace,etc,json,json/parser,json/generator,ripper' \
+    --with-ext='rbconfig/sizeof,strscan,continuation,date,stringio,objspace,etc,json,json/parser,json/generator,ripper,socket' \
     \
     `# ── Extensions to exclude (comma-separated) ──` \
     `# --with-out-ext='-test-,gdbm,dbm,readline,pty,syslog,fiddle,nkf,openssl,psych,json,stringio,pathname,digest,socket,zlib'` \
@@ -438,29 +439,3 @@ sed -i "/^miniruby\\\$(EXEEXT):/,/^[^\t]/{
 echo ""
 echo "=== Configure complete ==="
 echo ""
-echo "Post-configure checklist:"
-echo ""
-echo "  1. Verify config.h:"
-echo "     grep -E 'HAVE_SIGACTION|HAVE_DLOPEN|HAVE_FORK|HAVE_TIMER_CREATE|HAVE_MMAP|HAVE_PIPE |USE_YJIT|USE_RJIT|EXTSTATIC|COROUTINE_H' config.h"
-echo "     Expected:"
-echo "       HAVE_SIGACTION        → undefined or 0"
-echo "       HAVE_DLOPEN           → undefined or 0"
-echo "       HAVE_FORK             → undefined or 0"
-echo "       HAVE_TIMER_CREATE     → undefined or 0"
-echo "       HAVE_MMAP             → undefined or 0"
-echo "       HAVE_PIPE             → undefined or 0 (unless newlib has it)"
-echo "       USE_YJIT              → 0"
-echo "       USE_RJIT              → 0"
-echo "       EXTSTATIC             → 1"
-echo "       COROUTINE_H           → \"coroutine/arm64/Context.h\""
-echo ""
-echo "  2. Also verify USE_MN_THREADS is 0 (set via -D in CPPFLAGS, not in config.h)"
-echo ""
-echo "  3. Build:"
-echo "     make miniruby   # uses host baseruby, not cross-compiled"
-echo "     make            # full cross-compiled build"
-echo "     make install"
-echo ""
-echo "  4. Troubleshooting:"
-echo "     'function not found' compile error → newlib has it → flip ac_cv_func_XXX to =yes"
-echo "     'undefined reference' link error   → newlib lacks it → flip ac_cv_func_XXX to =no"
