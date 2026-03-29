@@ -247,6 +247,7 @@ test/socket/test_udp
 test/socket/test_tcp
 test/socket/test_nonblock
 test/socket/test_sockopt
+test/socket/test_socket
 =end
 
 # Ignored
@@ -264,15 +265,13 @@ test/socket/test_unix         # HNU: Horizon is Not Unix
 # To check
 =begin
 test/test_ipaddr
-test/socket/test_nonblock
-test/socket/test_sockopt
 test/socket/test_socket
 test/socket/test_addrinfo
 =end
 
 # Load test files
 %w[
-  test/socket/test_sockopt
+  test/socket/test_addrinfo
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
@@ -363,6 +362,15 @@ SWITCH_SKIP_TESTS = {
     test_initialize_with_hostname_resolution_failure_after_connection_failure
     test_initialize_resolv_timeout_with_connection_failure
     test_initialize_failure
+  ],
+  # No signals so no interrupting system calls / IO.pipe / ip_address_list
+  "TestSocket" => %w[
+    test_closed_read
+    test_accept_loop
+    test_accept_loop_multi_port
+    test_udp_server_sockets_in_rescue
+    test_ip_address_list_include_localhost
+    test_ip_address_list
   ],
   # Relying on test/-ext- extensions
   "TestCall" => %w[
