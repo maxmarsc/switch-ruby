@@ -243,6 +243,7 @@ test/ripper/test_sexp
 ########## SOCKET EXT TESTS ##########
 test/socket/test_ancdata
 test/socket/test_basicsocket
+test/socket/test_udp
 =end
 
 # Ignored
@@ -262,17 +263,16 @@ test/test_ipaddr
 test/socket/test_tcp
 test/socket/test_udp
 test/socket/test_unix
-test/socket/test_socket
-test/socket/test_addrinfo
 test/socket/test_nonblock
 test/socket/test_sockopt
+test/socket/test_socket
+test/socket/test_addrinfo
 =end
 
 
 # Load test files
 %w[
-  test/socket/test_ancdata
-  test/socket/test_basicsocket
+  test/socket/test_tcp
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"

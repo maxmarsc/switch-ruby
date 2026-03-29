@@ -123,8 +123,14 @@ class TestSocket_TCPSocket < Test::Unit::TestCase
   end
 
   def test_accept_multithread
-    attempts_count       = 5
-    server_threads_count = 3
+    if RUBY_PLATFORM =~ /aarch64-elf/
+      # On switch the amount of socket is limited to 32 on default socket init
+      attempts_count       = 2
+      server_threads_count = 2
+    else
+      attempts_count       = 5
+      server_threads_count = 3
+    end
     client_threads_count = 3
 
     attempts_count.times do
