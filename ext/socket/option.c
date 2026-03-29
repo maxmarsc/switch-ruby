@@ -13,7 +13,8 @@ VALUE rb_cSockOpt;
     defined(__DragonFly__) || \
     defined(__APPLE__) || \
     defined(_WIN32) || \
-    defined(__CYGWIN__)
+    defined(__CYGWIN__)  || \
+    defined(__SWITCH__)
 # define TYPE_IP_MULTICAST_LOOP int
 # define TYPE_IP_MULTICAST_TTL int
 #else

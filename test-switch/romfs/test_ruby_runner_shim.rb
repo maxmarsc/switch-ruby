@@ -246,6 +246,7 @@ test/socket/test_basicsocket
 test/socket/test_udp
 test/socket/test_tcp
 test/socket/test_nonblock
+test/socket/test_sockopt
 =end
 
 # Ignored
