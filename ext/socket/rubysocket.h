@@ -47,6 +47,9 @@
     // Libnx provides these macros for compliance, but doesn't actually define the ipv6_mreq struct
 #    undef IPV6_JOIN_GROUP
 #    undef IPV6_LEAVE_GROUP
+    // We have access to getaddrinfo - this make the ruby getaddrinfo call
+    // a blocking one, maybe in the future that could be an issue ?
+#    define GETADDRINFO_IMPL 0
 #  endif
 #  ifdef HAVE_NETINET_IN_SYSTM_H
 #    include <netinet/in_systm.h>

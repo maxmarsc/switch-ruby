@@ -59,10 +59,6 @@ $LOADED_FEATURES << '-test-/memory_view.so'
 $LOADED_FEATURES << '-test-/file.so'
 $LOADED_FEATURES << '-test-/time.so'
 
-# To check
-=begin
-=end
-
 # Passing
 =begin
 ########## BASE RUBY TESTS ##########
@@ -244,6 +240,9 @@ test/ripper/test_parser_events
 test/ripper/test_ripper
 test/ripper/test_scanner_events
 test/ripper/test_sexp
+########## SOCKET EXT TESTS ##########
+test/socket/test_ancdata
+test/socket/test_basicsocket
 =end
 
 # Ignored
@@ -257,17 +256,30 @@ test/ruby/test_dir            # entirely dependant on unsupported fs behavior
 test/ruby/test_memory_view    # ignored feature rb_memory_view_register / rb_memory_view_get
 =end
 
+# To check
+=begin
+test/test_ipaddr
+test/socket/test_tcp
+test/socket/test_udp
+test/socket/test_unix
+test/socket/test_socket
+test/socket/test_addrinfo
+test/socket/test_nonblock
+test/socket/test_sockopt
+=end
+
 
 # Load test files
 %w[
-  test/test_ipaddr
+  test/socket/test_ancdata
+  test/socket/test_basicsocket
 ].each do |f|
-    begin
-      load "romfs:/#{f}.rb"
-    rescue LoadError => e
-      puts "SKIP #{f}: #{e.message}"
-    end
+  begin
+    load "romfs:/#{f}.rb"
+  rescue LoadError => e
+    puts "SKIP #{f}: #{e.message}"
   end
+end
 
 SWITCH_SKIP_TESTS = {
   # These tests make use of disabled features like subprocess, pipes...
@@ -317,6 +329,7 @@ SWITCH_SKIP_TESTS = {
   ],
   # Unsupported fs features
   "TestTmpdir" => %w[test_world_writable],
+  "TestSocket_BasicSocket" => %w[test_for_fd],
   # Relying on pipes or fat32/devoptab limitations, except for utime
   "TestFile" => %w[
     test_realpath_special_symlink
