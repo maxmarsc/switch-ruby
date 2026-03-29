@@ -55,6 +55,7 @@ if defined?(SWITCH_TARGET) && SWITCH_TARGET
   ].each { |f| $defs << "-DHAVE_#{f.upcase}" }
 
   $defs << "-DGAI_STRERROR_CONST"
+  # libnx doesn't support IPv6 sockets though
   $defs << "-DENABLE_IPV6"
   $defs << "-DINET6"
 

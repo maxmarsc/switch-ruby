@@ -244,6 +244,8 @@ test/ripper/test_sexp
 test/socket/test_ancdata
 test/socket/test_basicsocket
 test/socket/test_udp
+test/socket/test_tcp
+test/socket/test_nonblock
 =end
 
 # Ignored
@@ -255,24 +257,21 @@ test/ruby/test_default_gems   # tests gem loading
 test/ruby/test_vm_dump        # darwin-specific
 test/ruby/test_dir            # entirely dependant on unsupported fs behavior
 test/ruby/test_memory_view    # ignored feature rb_memory_view_register / rb_memory_view_get
+test/socket/test_unix         # HNU: Horizon is Not Unix
 =end
 
 # To check
 =begin
 test/test_ipaddr
-test/socket/test_tcp
-test/socket/test_udp
-test/socket/test_unix
 test/socket/test_nonblock
 test/socket/test_sockopt
 test/socket/test_socket
 test/socket/test_addrinfo
 =end
 
-
 # Load test files
 %w[
-  test/socket/test_tcp
+  test/socket/test_sockopt
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
@@ -353,6 +352,17 @@ SWITCH_SKIP_TESTS = {
     test_chmod_m17n
     test_utime
     ],
+  # IPV6 is not supported & missing getifaddrs causes ip_address_list to raise EFAULT
+  "TestSocket_TCPSocket" => %w[
+    test_initialize_v6_hostname_resolved_in_resolution_delay
+    test_initialize_v6_hostname_resolved_earlier_and_v6_server_is_not_listening
+    test_initialize_v6_hostname_resolved_later_and_v6_server_is_not_listening
+    test_initialize_v6_hostname_resolved_earlier
+    test_initialize_v6_connected_socket_with_v6_address
+    test_initialize_with_hostname_resolution_failure_after_connection_failure
+    test_initialize_resolv_timeout_with_connection_failure
+    test_initialize_failure
+  ],
   # Relying on test/-ext- extensions
   "TestCall" => %w[
     test_call_ifunc_iseq_large_array_splat_pass
