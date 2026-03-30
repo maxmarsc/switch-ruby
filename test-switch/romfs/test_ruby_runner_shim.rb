@@ -372,6 +372,8 @@ SWITCH_SKIP_TESTS = {
     test_ip_address_list_include_localhost
     test_ip_address_list
   ],
+  "TestSocketAddrinfo" => %w[
+  ],
   # Relying on test/-ext- extensions
   "TestCall" => %w[
     test_call_ifunc_iseq_large_array_splat_pass

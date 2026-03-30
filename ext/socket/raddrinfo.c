@@ -598,6 +598,35 @@ rb_getnameinfo(const struct sockaddr *sa, socklen_t salen,
            char *host, size_t hostlen,
            char *serv, size_t servlen, int flags)
 {
+#if defined(__SWITCH__)
+    /* libnx's getnameinfo ignores NI_NUMERICHOST, handle it with inet_ntop */
+    if (host && hostlen > 0 && (flags & NI_NUMERICHOST)) {
+        const void *addr;
+        int af = sa->sa_family;
+
+        if (af == AF_INET) {
+            addr = &((const struct sockaddr_in *)sa)->sin_addr;
+        } else if (af == AF_INET6) {
+            addr = &((const struct sockaddr_in6 *)sa)->sin6_addr;
+        } else {
+            return EAI_FAMILY;
+        }
+
+        if (!inet_ntop(af, addr, host, hostlen)) {
+            return EAI_OVERFLOW;
+        }
+
+        if (serv && servlen > 0) {
+            int port;
+            if (af == AF_INET)
+                port = ntohs(((const struct sockaddr_in *)sa)->sin_port);
+            else
+                port = ntohs(((const struct sockaddr_in6 *)sa)->sin6_port);
+            snprintf(serv, servlen, "%d", port);
+        }
+        return 0;
+    }
+#endif
     return getnameinfo(sa, salen, host, hostlen, serv, servlen, flags);
 }
 
