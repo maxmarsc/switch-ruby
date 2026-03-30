@@ -191,6 +191,7 @@ test/test_time
 test/test_timeout
 test/test_tmpdir
 test/test_unicode_normalize
+test/test_ipaddr
 ########## JSON EXT TESTS ##########
 test/json/json_addition_test
 test/json/json_common_interface_test
@@ -248,6 +249,7 @@ test/socket/test_tcp
 test/socket/test_nonblock
 test/socket/test_sockopt
 test/socket/test_socket
+test/socket/test_addrinfo
 =end
 
 # Ignored
@@ -271,6 +273,13 @@ test/socket/test_addrinfo
 
 # Load test files
 %w[
+  test/socket/test_ancdata
+  test/socket/test_basicsocket
+  test/socket/test_udp
+  test/socket/test_tcp
+  test/socket/test_nonblock
+  test/socket/test_sockopt
+  test/socket/test_socket
   test/socket/test_addrinfo
 ].each do |f|
   begin
@@ -372,7 +381,14 @@ SWITCH_SKIP_TESTS = {
     test_ip_address_list_include_localhost
     test_ip_address_list
   ],
+  # IPV6 is not supported
   "TestSocketAddrinfo" => %w[
+    test_ipv6_address_predicates
+    test_addrinfo_inspect_sockaddr_inet6
+    test_marshal_inet6
+    test_ipv6_to_ipv4
+    test_addrinfo_ip_unpack_inet6
+    test_addrinfo_new_inet6
   ],
   # Relying on test/-ext- extensions
   "TestCall" => %w[
