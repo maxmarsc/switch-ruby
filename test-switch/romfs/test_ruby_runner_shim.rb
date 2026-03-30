@@ -177,6 +177,7 @@ test/ruby/test_keyword
 test/ruby/test_dir_m17n
 ########## RUBY STDLIB ##########
 test/test_pp
+test/test_prettyprint
 test/test_delegate
 test/test_forwardable
 test/test_shellwords
@@ -261,26 +262,21 @@ test/ruby/test_default_gems   # tests gem loading
 test/ruby/test_vm_dump        # darwin-specific
 test/ruby/test_dir            # entirely dependant on unsupported fs behavior
 test/ruby/test_memory_view    # ignored feature rb_memory_view_register / rb_memory_view_get
+test/test_tempfile            # relies heavily on checking a file while it's fd is still open from creation, not supported
+test/test_open3               # relies on subprocess
+test/test_pty                 # no terminal support
+test/test_pstore              # persistent storage, needs filesystem write + concurrent file access
+test/test_bundled_gems        # tests gem loading
+test/test_extlibs             # external libraries loading
 test/socket/test_unix         # HNU: Horizon is Not Unix
 =end
 
 # To check
 =begin
-test/test_ipaddr
-test/socket/test_socket
-test/socket/test_addrinfo
 =end
 
 # Load test files
 %w[
-  test/socket/test_ancdata
-  test/socket/test_basicsocket
-  test/socket/test_udp
-  test/socket/test_tcp
-  test/socket/test_nonblock
-  test/socket/test_sockopt
-  test/socket/test_socket
-  test/socket/test_addrinfo
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
