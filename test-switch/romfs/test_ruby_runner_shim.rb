@@ -251,6 +251,9 @@ test/socket/test_nonblock
 test/socket/test_sockopt
 test/socket/test_socket
 test/socket/test_addrinfo
+########## IO EXT TESTS ##########
+test/io/wait/test_io_wait_uncommon
+test/io/wait/test_ractor
 =end
 
 # Ignored
@@ -269,6 +272,8 @@ test/test_pstore              # persistent storage, needs filesystem write + con
 test/test_bundled_gems        # tests gem loading
 test/test_extlibs             # external libraries loading
 test/socket/test_unix         # HNU: Horizon is Not Unix
+test/io/wait/test_io_wait     # rely entirely on pipes
+test/io/nonblock/test_flush   # rely entirely on pipes
 =end
 
 # To check
@@ -277,6 +282,7 @@ test/socket/test_unix         # HNU: Horizon is Not Unix
 
 # Load test files
 %w[
+
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
