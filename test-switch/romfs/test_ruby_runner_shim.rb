@@ -259,6 +259,10 @@ test/pathname/test_pathname
 test/pathname/test_ractor
 ########## MONITOR EXT TESTS ##########
 test/monitor/test_monitor
+########## DIGEST EXT TESTS ##########
+test/digest/test_digest
+test/digest/test_digest_extend
+test/digest/test_ractor
 =end
 
 # Ignored
@@ -287,7 +291,9 @@ test/io/nonblock/test_flush   # rely entirely on pipes
 
 # Load test files
 %w[
-  test/monitor/test_monitor
+  test/digest/test_digest
+  test/digest/test_digest_extend
+  test/digest/test_ractor
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
