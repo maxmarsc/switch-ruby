@@ -291,9 +291,7 @@ test/io/nonblock/test_flush   # rely entirely on pipes
 
 # Load test files
 %w[
-  test/digest/test_digest
-  test/digest/test_digest_extend
-  test/digest/test_ractor
+  test/zlib/test_zlib
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
@@ -351,6 +349,12 @@ SWITCH_SKIP_TESTS = {
   # Unsupported fs features
   "TestTmpdir" => %w[test_world_writable],
   "TestSocket_BasicSocket" => %w[test_for_fd],
+  # Unsupported fs features
+  "TestZlib" => %w[
+    test_crc32
+    test_adler32
+    test_os_code
+  ],
   # Relying on pipes or fat32/devoptab limitations, except for utime
   "TestFile" => %w[
     test_realpath_special_symlink

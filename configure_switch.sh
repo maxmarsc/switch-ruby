@@ -370,6 +370,7 @@ io/wait
 pathname
 monitor
 digest
+zlib
 EOF
 
 ../configure \
@@ -418,7 +419,7 @@ EOF
     \
     `# ── Extensions to include (comma-separated) ──` \
     `# --with-ext=json,stringio,pathname,digest,socket,zlib` \
-    --with-ext='rbconfig/sizeof,strscan,continuation,date,stringio,objspace,etc,json,json/parser,json/generator,ripper,socket,io/nonblock,io/wait,pathname,monitor,digest' \
+    --with-ext='rbconfig/sizeof,strscan,continuation,date,stringio,objspace,etc,json,json/parser,json/generator,ripper,socket,io/nonblock,io/wait,pathname,monitor,digest,zlib' \
     \
     `# ── Extensions to exclude (comma-separated) ──` \
     `# --with-out-ext='-test-,gdbm,dbm,readline,pty,syslog,fiddle,nkf,openssl,psych,json,stringio,pathname,digest,socket,zlib'` \
