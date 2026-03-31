@@ -254,6 +254,9 @@ test/socket/test_addrinfo
 ########## IO EXT TESTS ##########
 test/io/wait/test_io_wait_uncommon
 test/io/wait/test_ractor
+########## PATHNAME EXT TESTS ##########
+test/pathname/test_pathname
+test/pathname/test_ractor
 =end
 
 # Ignored
@@ -282,7 +285,8 @@ test/io/nonblock/test_flush   # rely entirely on pipes
 
 # Load test files
 %w[
-
+  test/pathname/test_pathname
+  test/pathname/test_ractor
 ].each do |f|
   begin
     load "romfs:/#{f}.rb"
@@ -391,6 +395,18 @@ SWITCH_SKIP_TESTS = {
     test_ipv6_to_ipv4
     test_addrinfo_ip_unpack_inet6
     test_addrinfo_new_inet6
+  ],
+  # Unsupported fs features
+  "TestPathname" => %w[
+    test_sysopen
+    test_world_writable?
+    test_utime
+    test_chmod
+    test_world_readable?
+    test_find
+    test_executable?
+    test_executable_real?
+    test_grpowned?
   ],
   # Relying on test/-ext- extensions
   "TestCall" => %w[

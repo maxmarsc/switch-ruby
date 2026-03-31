@@ -954,13 +954,15 @@ class TestPathname < Test::Unit::TestCase
         assert_equal("abc", f.read)
       }
 
-      Pathname("b").open("w", 0444) {|f| f.write "def" }
-      assert_equal(0444 & ~File.umask, File.stat("b").mode & 0777)
-      assert_equal("def", File.read("b"))
+      if RUBY_PLATFORM !~ /aarch64-elf/
+        Pathname("b").open("w", 0444) {|f| f.write "def" }
+        assert_equal(0444 & ~File.umask, File.stat("b").mode & 0777)
+        assert_equal("def", File.read("b"))
 
-      Pathname("c").open("w", 0444, **{}) {|f| f.write "ghi" }
-      assert_equal(0444 & ~File.umask, File.stat("c").mode & 0777)
-      assert_equal("ghi", File.read("c"))
+        Pathname("c").open("w", 0444, **{}) {|f| f.write "ghi" }
+        assert_equal(0444 & ~File.umask, File.stat("c").mode & 0777)
+        assert_equal("ghi", File.read("c"))
+      end
 
       g = path.open
       assert_equal("abc", g.read)

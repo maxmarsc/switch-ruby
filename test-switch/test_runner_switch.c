@@ -187,7 +187,6 @@ int main(int argc, char** argv) {
       return 0;
     }
 #endif
-
     char * ruby_opts[] = {argv[0], "-e", ""};
 
     printf("Initializing Ruby...\n");

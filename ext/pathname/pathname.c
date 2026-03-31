@@ -1284,7 +1284,13 @@ path_unlink(VALUE self)
 {
     VALUE eENOTDIR = rb_const_get_at(rb_mErrno, id_ENOTDIR);
     VALUE str = get_strpath(self);
+#if defined(__SWITCH__)
+    // newlib's rmdir() returns ENOENT (not ENOTDIR) for files
+    VALUE eENOENT = rb_const_get_at(rb_mErrno, rb_intern("ENOENT"));
+    return rb_rescue2(unlink_body, str, unlink_rescue, str, eENOTDIR, eENOENT, (VALUE)0);
+#else
     return rb_rescue2(unlink_body, str, unlink_rescue, str, eENOTDIR, (VALUE)0);
+#endif
 }
 
 /*

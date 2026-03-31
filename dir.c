@@ -143,6 +143,94 @@ char *strchr(char*,char);
 # define IS_WIN32 0
 #endif
 
+#ifdef __SWITCH__
+#include <switch.h>
+
+struct switch_dir_state {
+    DIR *dir;
+    int synthetic;
+    struct dirent fake_entry;
+    struct switch_dir_state *next;
+};
+
+static struct switch_dir_state *switch_dir_states = NULL;
+static pthread_mutex_t switch_dir_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static struct switch_dir_state *
+switch_dir_get_state(DIR *dir)
+{
+    struct switch_dir_state *s;
+    pthread_mutex_lock(&switch_dir_mutex);
+    for (s = switch_dir_states; s; s = s->next) {
+        if (s->dir == dir) {
+            pthread_mutex_unlock(&switch_dir_mutex);
+            return s;
+        }
+    }
+    s = calloc(1, sizeof(struct switch_dir_state));
+    s->dir = dir;
+    s->next = switch_dir_states;
+    switch_dir_states = s;
+    pthread_mutex_unlock(&switch_dir_mutex);
+    return s;
+}
+
+static void
+switch_dir_remove_state(DIR *dir)
+{
+    pthread_mutex_lock(&switch_dir_mutex);
+    struct switch_dir_state **pp = &switch_dir_states;
+    while (*pp) {
+        if ((*pp)->dir == dir) {
+            struct switch_dir_state *tmp = *pp;
+            *pp = tmp->next;
+            free(tmp);
+            break;
+        }
+        pp = &(*pp)->next;
+    }
+    pthread_mutex_unlock(&switch_dir_mutex);
+}
+
+#define readdir(dir) switch_readdir(dir)
+#define rewinddir(dir) switch_rewinddir(dir)
+#define closedir(dir) switch_closedir(dir)
+
+static struct dirent *
+switch_readdir(DIR *dir)
+{
+    struct switch_dir_state *s = switch_dir_get_state(dir);
+    if (s->synthetic < 2) {
+        s->fake_entry.d_name[0] = '.';
+        if (s->synthetic == 1) {
+            s->fake_entry.d_name[1] = '.';
+            s->fake_entry.d_name[2] = '\0';
+        }
+        else {
+            s->fake_entry.d_name[1] = '\0';
+        }
+        s->synthetic++;
+        return &s->fake_entry;
+    }
+    return (readdir)(dir);  // parentheses bypass the macro
+}
+
+static void
+switch_rewinddir(DIR *dir)
+{
+    struct switch_dir_state *s = switch_dir_get_state(dir);
+    s->synthetic = 0;
+    (rewinddir)(dir);
+}
+
+static int
+switch_closedir(DIR *dir)
+{
+    switch_dir_remove_state(dir);
+    return (closedir)(dir);
+}
+#endif
+
 #ifdef HAVE_GETATTRLIST
 struct getattrlist_args {
     const char *path;
