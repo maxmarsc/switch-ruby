@@ -22,6 +22,7 @@ else
 fi
 
 PREFIX="${PREFIX:-${DEVKITPRO}/portlibs/switch}"
+ROOT_PATH="$(cd "$(dirname "$0")" && pwd)"
 
 # =============================================================================
 # 1) Toolchain paths — derived from DevkitA64Libnx.cmake
@@ -52,7 +53,7 @@ if [ -z "${NATIVE_BUILD:-}" ]; then
 fi
 
 NATIVE_ARCH=$(cd "${NATIVE_BUILD}" && ./miniruby -r./rbconfig -e "puts RbConfig::CONFIG['arch']")
-NATIVE_MINIRUBY="${PWD}/miniruby -r${PWD}/../switch_cross_compiling_setup.rb -I${PWD} -I${NATIVE_BUILD} -I${PWD}/../lib -I${PWD}/.ext/common"
+NATIVE_MINIRUBY="${PWD}/miniruby -r${ROOT_PATH}/switch_cross_compiling_setup.rb -I${PWD} -I${NATIVE_BUILD} -I${ROOT_PATH}/lib -I${PWD}/.ext/common"
 
 # =============================================================================
 # 2) Compiler/linker flags — matching CMake toolchain
@@ -353,7 +354,7 @@ echo "    DEVKITPRO = ${DEVKITPRO}"
 echo "    PREFIX     = ${PREFIX}"
 echo ""
 
-cat > ../ext/Setup.switch <<'EOF'
+cat > "${ROOT_PATH}/ext/Setup.switch" <<'EOF'
 option nodynamic
 rbconfig/sizeof
 strscan
@@ -376,7 +377,7 @@ zlib
 fcntl
 EOF
 
-../configure \
+"${ROOT_PATH}"/configure \
     --host=aarch64-none-elf \
     --prefix="${PREFIX}" \
     MINIRUBY="${NATIVE_MINIRUBY}" \
@@ -438,13 +439,13 @@ EOF
 # because it assumes MINIRUBY can't run on the host. We have a native MINIRUBY,
 # so we force it back on. Without this, symbol.rb, kernel.rb, io.rb, etc.
 # are not compiled into the binary, and core methods like Symbol#to_s are missing.
-sed -i 's/^BUILTIN_BINARY = no/BUILTIN_BINARY = yes/' Makefile
+sed -i 's/^BUILTIN_BINARY = no/BUILTIN_BINARY = yes/' "${PWD}/Makefile"
 # Replace the cross-compiled miniruby target with a symlink to native.
 sed -i "/^miniruby\\\$(EXEEXT):/,/^[^\t]/{
     /^miniruby/c\\miniruby: ; ln -sf ${NATIVE_BUILD}/miniruby miniruby
     /^\t/d
-}" Makefile
-sed -i "s|^RUNRUBY_COMMAND = .*|RUNRUBY_COMMAND = ${NATIVE_BUILD}/ruby -I${NATIVE_BUILD} -I${NATIVE_BUILD}/.ext/${NATIVE_ARCH} -I${NATIVE_BUILD}/.ext/common -I../lib|" Makefile
+}" "${PWD}/Makefile"
+sed -i "s|^RUNRUBY_COMMAND = .*|RUNRUBY_COMMAND = ${NATIVE_BUILD}/ruby -I${NATIVE_BUILD} -I${NATIVE_BUILD}/.ext/${NATIVE_ARCH} -I${NATIVE_BUILD}/.ext/common -I${ROOT_PATH}/lib|" "${PWD}/Makefile"
 
 echo ""
 echo "=== Configure complete ==="
