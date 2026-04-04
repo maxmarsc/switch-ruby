@@ -353,6 +353,8 @@ SWITCH_SKIP_TESTS = {
   "TestZlib" => %w[
     test_crc32
     test_adler32
+  ],
+  "TestZlibGzipFile" => %w[
     test_os_code
   ],
   # Relying on pipes or fat32/devoptab limitations, except for utime
