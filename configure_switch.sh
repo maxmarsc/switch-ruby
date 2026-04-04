@@ -21,6 +21,7 @@ else
     OPT_FLAGS="-O2 -DNDEBUG"
 fi
 
+PREFIX="${PREFIX:-${DEVKITPRO}/portlibs/switch}"
 
 # =============================================================================
 # 1) Toolchain paths — derived from DevkitA64Libnx.cmake
@@ -50,6 +51,7 @@ if [ -z "${NATIVE_BUILD:-}" ]; then
     exit 1
 fi
 
+NATIVE_ARCH=$(cd "${NATIVE_BUILD}" && ./miniruby -r./rbconfig -e "puts RbConfig::CONFIG['arch']")
 NATIVE_MINIRUBY="${PWD}/miniruby -r${PWD}/../switch_cross_compiling_setup.rb -I${PWD} -I${NATIVE_BUILD} -I${PWD}/../lib -I${PWD}/.ext/common"
 
 # =============================================================================
@@ -442,6 +444,7 @@ sed -i "/^miniruby\\\$(EXEEXT):/,/^[^\t]/{
     /^miniruby/c\\miniruby: ; ln -sf ${NATIVE_BUILD}/miniruby miniruby
     /^\t/d
 }" Makefile
+sed -i "s|^RUNRUBY_COMMAND = .*|RUNRUBY_COMMAND = ${NATIVE_BUILD}/ruby -I${NATIVE_BUILD} -I${NATIVE_BUILD}/.ext/${NATIVE_ARCH} -I${NATIVE_BUILD}/.ext/common -I../lib|" Makefile
 
 echo ""
 echo "=== Configure complete ==="
