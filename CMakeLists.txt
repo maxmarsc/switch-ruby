@@ -25,6 +25,9 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${DEVKITPRO}/portlibs/switch" CACHE PATH "" FORCE)
 endif()
 
+# This is not the actual ruby version (3.4.X), but it serves to set correct include/install paths
+set(RUBY_VERSION "3.4.0")
+set(RUBY_TARGET_ARCH "aarch64-elf")
 set(RUBY_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(RUBY_CROSS_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/ruby-cross)
 set(RUBY_NATIVE_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/ruby-native)
@@ -38,8 +41,8 @@ ProcessorCount(NCPUS)
 ExternalProject_Add(switch_ruby_native
     SOURCE_DIR ${RUBY_SOURCE_DIR}
     BINARY_DIR ${RUBY_NATIVE_BUILD_DIR}
-    CONFIGURE_COMMAND ${RUBY_SOURCE_DIR}/configure
-        --disable-install-doc --disable-rubygems
+    CONFIGURE_COMMAND ${RUBY_SOURCE_DIR}/autogen.sh
+        COMMAND ${RUBY_SOURCE_DIR}/configure --disable-install-doc --disable-rubygems
     BUILD_COMMAND make -j${NCPUS}
     INSTALL_COMMAND ""
     BUILD_BYPRODUCTS ${RUBY_NATIVE_BUILD_DIR}/miniruby
@@ -53,32 +56,40 @@ if(SWITCH_RUBY_DEBUG)
 endif()
 
 set(RUBY_CROSS_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/ruby-cross-install)
-set(RUBY_CROSS_LIBS 
-    ${RUBY_CROSS_INSTALL_DIR}/lib/libruby-static.a
-    ${RUBY_CROSS_BUILD_DIR}/enc/libenc.a
-    ${RUBY_CROSS_BUILD_DIR}/enc/libtrans.a
+
+set(RUBY_STATIC_LIB 
+    $<BUILD_INTERFACE:${RUBY_CROSS_INSTALL_DIR}/lib/libruby-static.a>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libruby-static.a>
 )
-set(RUBY_CROSS_EXT_LIBS
-    ${RUBY_CROSS_BUILD_DIR}/ext/continuation/continuation.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/date/date_core.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/digest/digest.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/etc/etc.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/fcntl/fcntl.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/io/nonblock/nonblock.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/io/wait/wait.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/json/generator/generator.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/json/parser/parser.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/monitor/monitor.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/objspace/objspace.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/pathname/pathname.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/rbconfig/sizeof/sizeof.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/ripper/ripper.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/socket/socket.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/stringio/stringio.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/strscan/strscan.a
-    ${RUBY_CROSS_BUILD_DIR}/ext/zlib/zlib.a
+# Listing of all relative paths for extensions
+set(RUBY_EXT_LIBS_REL
+    enc/libenc.a
+    enc/libtrans.a
+    ext/continuation/continuation.a
+    ext/date/date_core.a
+    ext/digest/digest.a
+    ext/etc/etc.a
+    ext/fcntl/fcntl.a
+    ext/io/nonblock/nonblock.a
+    ext/io/wait/wait.a
+    ext/json/generator/generator.a
+    ext/json/parser/parser.a
+    ext/monitor/monitor.a
+    ext/objspace/objspace.a
+    ext/pathname/pathname.a
+    ext/rbconfig/sizeof/sizeof.a
+    ext/ripper/ripper.a
+    ext/socket/socket.a
+    ext/stringio/stringio.a
+    ext/strscan/strscan.a
+    ext/zlib/zlib.a
 )
-set(RUBY_LIB_DIR ${RUBY_CROSS_INSTALL_DIR}/lib/ruby/3.4.0)
+
+# Build concrete paths
+foreach(rel IN LISTS RUBY_EXT_LIBS_REL)
+    list(APPEND RUBY_EXT_LIBS_BUILD   "${RUBY_CROSS_BUILD_DIR}/${rel}")
+    list(APPEND RUBY_EXT_LIBS_INSTALL "${CMAKE_INSTALL_LIBDIR}/${rel}")
+endforeach()
 
 ExternalProject_Add(switch_ruby_cross
     SOURCE_DIR ${RUBY_SOURCE_DIR}
@@ -87,16 +98,14 @@ ExternalProject_Add(switch_ruby_cross
         NATIVE_BUILD=${RUBY_NATIVE_BUILD_DIR}
         PREFIX=${RUBY_CROSS_INSTALL_DIR}
         ${RUBY_SOURCE_DIR}/configure_switch.sh ${RUBY_CROSS_CONFIGURE_FLAGS}
-    BUILD_COMMAND make -j${NCPUS} miniruby && make -j${NCPUS}
-    # INSTALL_COMMAND ""
+    BUILD_COMMAND make -j${NCPUS} miniruby
+        COMMAND make -j${NCPUS}
     BUILD_BYPRODUCTS
-        ${RUBY_CROSS_LIBS}
-        ${RUBY_CROSS_EXT_LIBS}
+        ${RUBY_STATIC_LIB}
+        ${RUBY_EXT_LIBS_BUILD}
 )
 
 add_dependencies(switch_ruby_cross switch_ruby_native)
-
-set(RUBY_CROSS_LIBS ${RUBY_CROSS_BUILD_DIR}/libruby-static.a)
 
 
 # ##############################################################################
@@ -104,56 +113,31 @@ set(RUBY_CROSS_LIBS ${RUBY_CROSS_BUILD_DIR}/libruby-static.a)
 # ##############################################################################
 add_library(ruby_switch INTERFACE)
 add_library(Ruby::Switch ALIAS ruby_switch)
-add_dependencies(ruby_switch ruby_cross)
+add_dependencies(ruby_switch switch_ruby_cross)
 
 target_include_directories(ruby_switch INTERFACE
     # Generic headers
     $<BUILD_INTERFACE:${RUBY_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ruby-3.4.0>
     # Target-specific headers
-    $<BUILD_INTERFACE:${RUBY_BUILD_DIR}/.ext/include/aarch64-elf>
+    $<BUILD_INTERFACE:${RUBY_CROSS_BUILD_DIR}/.ext/include/aarch64-elf>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ruby-3.4.0/aarch64-elf>
 )
 
-# Link everything with --whole-archive to preserve Init_* symbols
-target_link_options(ruby_switch INTERFACE
-    -Wl,--whole-archive
-)
 target_link_libraries(ruby_switch INTERFACE
     # ruby core lib
-    $<BUILD_INTERFACE:${RUBY_CROSS_LIBS}>
-    $<BUILD_INTERFACE:${RUBY_CROSS_EXT_LIBS}>
-    # ruby core extensions
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libruby-static.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/libenc.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/libtrans.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/continuation/continuation.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/date/date_core.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/digest/digest.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/etc/etc.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/fcntl/fcntl.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/io/nonblock/nonblock.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/io/wait/wait.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/json/generator/generator.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/json/parser/parser.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/monitor/monitor.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/objspace/objspace.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/pathname/pathname.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/rbconfig/sizeof/sizeof.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/ripper/ripper.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/socket/socket.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/stringio/stringio.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/strscan/strscan.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext/zlib/zlib.a>
+    ${RUBY_STATIC_LIB}
+    # ruby core extensions - link with whole-archive to preserve Init_* symbols
+    $<LINK_LIBRARY:WHOLE_ARCHIVE,$<BUILD_INTERFACE:${RUBY_EXT_LIBS_BUILD}>>
+    $<LINK_LIBRARY:WHOLE_ARCHIVE,$<INSTALL_INTERFACE:${RUBY_EXT_LIBS_INSTALL}>>
+    # system libs
+    z m nx
 )
-target_link_options(ruby_switch INTERFACE
-    -Wl,--no-whole-archive
-)
-target_link_libraries(ruby_switch INTERFACE z m nx)
 
 # ##############################################################################
 # Install rules
 # ##############################################################################
+# install archives - base install is broken so we cannot use RUBY_CROSS_INSTALL_DIR
 install(
     FILES ${RUBY_CROSS_BUILD_DIR}/libruby-static.a
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -162,17 +146,18 @@ install(
     FILES 
         ${RUBY_CROSS_BUILD_DIR}/enc/libenc.a 
         ${RUBY_CROSS_BUILD_DIR}/enc/libtrans.a
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/enc
 )
 install(
-    DIRECTORY ${RUBY_CROSS_INSTALL_DIR}/include/ruby-3.4.0
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    DIRECTORY ${RUBY_CROSS_BUILD_DIR}/ext/
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/ext
+    FILES_MATCHING PATTERN "*.a"
 )
 
-# Install extension archives
+# Install headers
 install(
-    FILES ${RUBY_CROSS_EXT_LIBS}
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/ruby-3.4.0/ext
+    DIRECTORY ${RUBY_CROSS_INSTALL_DIR}/include/ruby-${RUBY_VERSION}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 # Install Ruby standard library
