@@ -5,7 +5,7 @@ to process plain text and serialized files, or manage system tasks.
 It is simple, straightforward, and extensible.
 
 ## What is this repository?
-This repository is a switch port of MRI Ruby using devkitpro, the reference implementation of Ruby, for Nintendo Switch (Horizon OS). It
+This repository is a Homebrew Switch port of MRI Ruby, the reference implementation of Ruby, using devkitpro. It
 is currently based on Ruby 3.4.8. If you wish to find the official README please scroll down.
 
 **BEWARE: This port is still in an experimental stage.**
@@ -13,7 +13,7 @@ is currently based on Ruby 3.4.8. If you wish to find the official README please
 ## The scope
 This repository is meant to be used as a static library for Nintendo Switch homebrew development. It is not meant to be used as a standalone Ruby interpreter. 
 
-As imposed by Horizon OS available features this port of Ruby comes with limitations which are listed in the `LIMITATIONS.md` file. Most of these limitations are inherent to the platform and will not be fixed.
+As imposed by Horizon OS available features, this port of Ruby comes with limitations which are listed in the [`LIMITATIONS.md`](LIMITATIONS.md) file. Most of these limitations are inherent to the platform and will not be fixed.
 
 The current builtins native extensions are included:
  - `rbconfig/sizeof`
@@ -35,6 +35,8 @@ The current builtins native extensions are included:
  - `digest`
  - `zlib`
  - `fcntl`
+
+The non-native (pure Ruby) builtin extensions are provided and should work out of the box, with regards to the port limitations.
 
 ## How to build
 Because the build steps required for this port are a bit complex, it is recommended to use the provided CMake configuration.
@@ -88,6 +90,8 @@ FetchContent_MakeAvailable(switch-ruby)
 target_link_libraries(your_target PRIVATE Ruby::ruby)
 ```
 
+## How to use
+TODO
 
 
 --------------------------------------------------------------------------------
