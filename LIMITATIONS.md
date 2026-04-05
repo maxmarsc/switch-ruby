@@ -5,7 +5,7 @@ This document describes the known limitations of the Ruby 3.4.x port to Nintendo
 ## Process Management
 
 - `fork`, `exec`, `spawn`, `system`, and `popen` are not available. Horizon OS does not support process creation from userland.
-- `Process.kill` and signal delivery (`trap`, `Signal.trap`) do not function. Horizon OS has no POSIX signal mechanism.
+- `Process.kill` and signal delivery (`trap`, `Signal.trap`) do not function. Horizon OS has no POSIX signal mechanism. This also means a blocking syscall cannot be interrupted and return `EINTR`.
 - `Process.pid` returns `-1`.
 - Backtick command execution (`` `echo foo` ``, `%x(...)`) is not supported.
 
