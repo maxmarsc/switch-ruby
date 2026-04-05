@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR_REL@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR_REL@
+
+Name: ruby
+Description: MRI Ruby @RUBY_VERSION@ static library for Nintendo Switch (Horizon OS)
+Version: @RUBY_VERSION@
+URL: https://github.com/maxmarsc/switch-ruby
+
+Cflags: -I${includedir}/ruby-@RUBY_VERSION@ -I${includedir}/ruby-@RUBY_VERSION@/@RUBY_TARGET_ARCH@
+
+Libs: -L${libdir} @RUBY_PC_LIBS@

@@ -111,11 +111,11 @@ add_dependencies(switch_ruby_cross switch_ruby_native)
 # ##############################################################################
 # Interface library
 # ##############################################################################
-add_library(ruby_switch INTERFACE)
-add_library(Ruby::Switch ALIAS ruby_switch)
-add_dependencies(ruby_switch switch_ruby_cross)
+add_library(ruby INTERFACE)
+add_library(Ruby::ruby ALIAS ruby)
+add_dependencies(ruby switch_ruby_cross)
 
-target_include_directories(ruby_switch INTERFACE
+target_include_directories(ruby INTERFACE
     # Generic headers
     $<BUILD_INTERFACE:${RUBY_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ruby-3.4.0>
@@ -124,7 +124,7 @@ target_include_directories(ruby_switch INTERFACE
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ruby-3.4.0/aarch64-elf>
 )
 
-target_link_libraries(ruby_switch INTERFACE
+target_link_libraries(ruby INTERFACE
     # ruby core lib
     ${RUBY_STATIC_LIB}
     # ruby core extensions - link with whole-archive to preserve Init_* symbols
@@ -163,4 +163,85 @@ install(
 # Install Ruby standard library
 install(DIRECTORY ${RUBY_CROSS_INSTALL_DIR}/lib/ruby
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+# ##############################################################################
+# find_package support
+# ##############################################################################
+include(CMakePackageConfigHelpers)
+
+# Generate RubyConfig.cmake from the template
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/RubyConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/RubyConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Ruby
+    # These tell configure_package_config_file which variables to make relocatable
+    PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR
+)
+
+# Generate RubyConfigVersion.cmake
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/RubyConfigVersion.cmake
+    VERSION ${RUBY_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+# Install both generated files
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/RubyConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/RubyConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Ruby
+)
+
+# Attach the target to an export set called "RubyTargets"
+install(TARGETS ruby
+    EXPORT RubyTargets
+)
+
+# Write RubyTargets.cmake into the install tree
+install(EXPORT RubyTargets
+    NAMESPACE Ruby::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Ruby
+)
+
+# ##############################################################################
+# pkg-config support
+# ##############################################################################
+set(_pc_libs "-lruby-static -Wl,--whole-archive")
+
+# Walk the relative path list to generate the correct -L and -l flags for the pkg-config file
+foreach(rel IN LISTS RUBY_EXT_LIBS_REL)
+    get_filename_component(_dir  "${rel}" DIRECTORY)
+    get_filename_component(_name "${rel}" NAME_WE)
+    string(REGEX REPLACE "^lib" "" _libname "${_name}")
+    if(_dir STREQUAL "")
+        string(APPEND _pc_libs " -l${_libname}")
+    else()
+        string(APPEND _pc_libs " -L\${libdir}/${_dir} -l${_libname}")
+    endif()
+endforeach()
+
+# system libs
+string(APPEND _pc_libs " -Wl,--no-whole-archive -lz -lm -lnx")
+
+set(RUBY_PC_LIBS "${_pc_libs}")
+
+
+# GNUInstallDirs gives absolute paths — pkg-config needs relative-to-prefix
+# CMAKE_INSTALL_LIBDIR is already relative (e.g. "lib"), but guard against an absolute override
+cmake_path(RELATIVE_PATH CMAKE_INSTALL_LIBDIR
+    BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}"
+    OUTPUT_VARIABLE CMAKE_INSTALL_LIBDIR_REL)
+cmake_path(RELATIVE_PATH CMAKE_INSTALL_INCLUDEDIR
+    BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}"
+    OUTPUT_VARIABLE CMAKE_INSTALL_INCLUDEDIR_REL)
+
+configure_file(
+    cmake/ruby.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/ruby.pc
+    @ONLY
+)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ruby.pc
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
