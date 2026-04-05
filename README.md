@@ -1,15 +1,97 @@
-[![Actions Status: MinGW](https://github.com/ruby/ruby/workflows/MinGW/badge.svg)](https://github.com/ruby/ruby/actions?query=workflow%3A"MinGW")
-[![Actions Status: RJIT](https://github.com/ruby/ruby/workflows/RJIT/badge.svg)](https://github.com/ruby/ruby/actions?query=workflow%3A"RJIT")
-[![Actions Status: Ubuntu](https://github.com/ruby/ruby/workflows/Ubuntu/badge.svg)](https://github.com/ruby/ruby/actions?query=workflow%3A"Ubuntu")
-[![Actions Status: Windows](https://github.com/ruby/ruby/workflows/Windows/badge.svg)](https://github.com/ruby/ruby/actions?query=workflow%3A"Windows")
-[![Travis Status](https://app.travis-ci.com/ruby/ruby.svg?branch=master)](https://app.travis-ci.com/ruby/ruby)
-
 # What is Ruby?
 
-Ruby is an interpreted object-oriented programming language often
-used for web development. It also offers many scripting features
+Ruby is an interpreted object-oriented programming language with many scripting features
 to process plain text and serialized files, or manage system tasks.
 It is simple, straightforward, and extensible.
+
+## What is this repository?
+This repository is a switch port of MRI Ruby using devkitpro, the reference implementation of Ruby, for Nintendo Switch (Horizon OS). It
+is currently based on Ruby 3.4.8. If you wish to find the official README please scroll down.
+
+**BEWARE: This port is still in an experimental stage.**
+
+## The scope
+This repository is meant to be used as a static library for Nintendo Switch homebrew development. It is not meant to be used as a standalone Ruby interpreter. 
+
+As imposed by Horizon OS available features this port of Ruby comes with limitations which are listed in the `LIMITATIONS.md` file. Most of these limitations are inherent to the platform and will not be fixed.
+
+The current builtins native extensions are included:
+ - `rbconfig/sizeof`
+ - `strscan`
+ - `continuation`
+ - `date`
+ - `stringio`
+ - `objspace`
+ - `etc`
+ - `json`
+ - `json/parser`
+ - `json/generator`
+ - `ripper`
+ - `socket`
+ - `io/nonblock`
+ - `io/wait`
+ - `pathname`
+ - `monitor`
+ - `digest`
+ - `zlib`
+ - `fcntl`
+
+## How to build
+Because the build steps required for this port are a bit complex, it is recommended to use the provided CMake configuration.
+
+### Requirements
+- A devkitPro toolchain with the latest libnx and newlib versions. The `DEVKITPRO` environment variable must be set.
+- CMake 3.28 or later.
+
+### System installation with cmake
+These instructions will install the library and headers as a portlib library in `$DEVKITPRO/portlibs/switch`.
+```bash
+git clone https://github.com/maxmarsc/switch-ruby.git
+cd switch-ruby
+cmake -B build
+cmake --build build
+cmake --install build
+```
+
+#### Integration with a CMake project
+Add the following lines to your CMakeLists.txt:
+```cmake
+find_package(ruby REQUIRED)
+target_link_libraries(your_target PRIVATE Ruby::ruby)
+```
+
+#### Integration with a Make project
+```makefile
+RUBY_CFLAGS  := $(shell pkg-config --cflags ruby)
+RUBY_LDFLAGS := $(shell pkg-config --libs   ruby)
+
+my_app.elf: main.o
+	$(CC) $^ $(LDFLAGS) $(RUBY_LDFLAGS) -o $@
+
+main.o: main.c
+	$(CC) $(CFLAGS) $(RUBY_CFLAGS) -c $< -o $@
+```
+
+
+### Using FetchContent
+If you already use CMake, you can use the `FetchContent` module to automatically download and build the library as part of your project:
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+  switch-ruby
+  GIT_REPOSITORY https://github.com/maxmarsc/switch-ruby.git
+  GIT_TAG main
+)
+FetchContent_MakeAvailable(switch-ruby)
+
+target_link_libraries(your_target PRIVATE Ruby::ruby)
+```
+
+
+
+--------------------------------------------------------------------------------
+**BELOW THIS LINE IS THE OFFICIAL README OF MRI RUBY.**
 
 ## Features of Ruby
 
