@@ -25,6 +25,11 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${DEVKITPRO}/portlibs/switch" CACHE PATH "" FORCE)
 endif()
 
+# find zlib
+set(ENV{PKG_CONFIG_PATH} "${PORTLIBS}/lib/pkgconfig")
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(ZLIB REQUIRED IMPORTED_TARGET zlib)
+
 # This is not the actual ruby version (3.4.X), but it serves to set correct include/install paths
 set(RUBY_VERSION "3.4.0")
 set(RUBY_TARGET_ARCH "aarch64-elf")
@@ -56,6 +61,11 @@ define_property(TARGET PROPERTY RUBY_VERSION
 ExternalProject_Add(switch_ruby_native
     SOURCE_DIR ${RUBY_SOURCE_DIR}
     BINARY_DIR ${RUBY_NATIVE_BUILD_DIR}
+    LOG_CONFIGURE ON
+    LOG_BUILD ON
+    LOG_UPDATE ON
+    LOG_INSTALL ON
+    LOG_OUTPUT_ON_FAILURE ON
     CONFIGURE_COMMAND ${RUBY_SOURCE_DIR}/autogen.sh
         COMMAND ${RUBY_SOURCE_DIR}/configure --disable-install-doc --disable-rubygems
     BUILD_COMMAND make -j${NCPUS}
@@ -109,6 +119,11 @@ endforeach()
 ExternalProject_Add(switch_ruby_cross
     SOURCE_DIR ${RUBY_SOURCE_DIR}
     BINARY_DIR ${RUBY_CROSS_BUILD_DIR}
+    LOG_CONFIGURE ON
+    LOG_BUILD ON
+    LOG_UPDATE ON
+    LOG_INSTALL ON
+    LOG_OUTPUT_ON_FAILURE ON
     CONFIGURE_COMMAND env
         NATIVE_BUILD=${RUBY_NATIVE_BUILD_DIR}
         PREFIX=${RUBY_CROSS_INSTALL_DIR}
@@ -154,7 +169,9 @@ target_link_libraries(ruby INTERFACE
         -Wl,--no-whole-archive
     >
     # system libs
-    z m nx
+    switch::libnx # see https://github.com/vbe0201/switch-cmake
+    PkgConfig::ZLIB
+    m
 )
 
 set_target_properties(ruby PROPERTIES
