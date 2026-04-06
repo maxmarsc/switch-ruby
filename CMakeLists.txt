@@ -143,8 +143,16 @@ target_link_libraries(ruby INTERFACE
     # ruby core lib
     ${RUBY_STATIC_LIB}
     # ruby core extensions - link with whole-archive to preserve Init_* symbols
-    $<LINK_LIBRARY:WHOLE_ARCHIVE,$<BUILD_INTERFACE:${RUBY_EXT_LIBS_BUILD}>>
-    $<LINK_LIBRARY:WHOLE_ARCHIVE,$<INSTALL_INTERFACE:${RUBY_EXT_LIBS_INSTALL}>>
+    $<BUILD_INTERFACE:
+        -Wl,--whole-archive
+        ${RUBY_EXT_LIBS_BUILD}
+        -Wl,--no-whole-archive
+    >
+    $<INSTALL_INTERFACE:
+        -Wl,--whole-archive
+        ${RUBY_EXT_LIBS_INSTALL}
+        -Wl,--no-whole-archive
+    >
     # system libs
     z m nx
 )
