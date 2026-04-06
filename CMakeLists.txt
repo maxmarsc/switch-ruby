@@ -34,6 +34,21 @@ set(RUBY_NATIVE_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/ruby-native)
 
 ProcessorCount(NCPUS)
 
+# ##############################################################################
+# Helper setup
+# ##############################################################################
+# Include helper script for ROMFS
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/RubySwitchHelpers.cmake)
+
+define_property(TARGET PROPERTY RUBY_STDLIB_DIR
+    BRIEF_DOCS "Path to the Ruby ${RUBY_VERSION} standard library directory"
+    FULL_DOCS  "Use this with ruby_switch_setup_romfs() to populate a romfs build tree"
+)
+define_property(TARGET PROPERTY RUBY_VERSION
+    BRIEF_DOCS "Ruby version string"
+    FULL_DOCS  "e.g. 3.4.0"
+)
+
 
 # ##############################################################################
 # Native RUBY build - required for cross-compilation and install phase
@@ -134,6 +149,11 @@ target_link_libraries(ruby INTERFACE
     z m nx
 )
 
+set_target_properties(ruby PROPERTIES
+    RUBY_STDLIB_DIR ${RUBY_CROSS_INSTALL_DIR}/lib/ruby/${RUBY_VERSION}
+    RUBY_VERSION    ${RUBY_VERSION}
+)
+
 # ##############################################################################
 # Install rules
 # ##############################################################################
@@ -186,10 +206,11 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
-# Install both generated files
+# Install both generated files and the helper functions
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/RubyConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/RubyConfigVersion.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/RubySwitchHelpers.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Ruby
 )
 
