@@ -288,3 +288,4 @@ ext/Setup.switch
 *test-switch/*.nacp
 *test-switch/*.nro
 *test-switch/romfs/build/*
+examples/*/build
