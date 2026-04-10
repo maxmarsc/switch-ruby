@@ -84,7 +84,7 @@ set(RUBY_CROSS_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/ruby-cross-install)
 
 set(RUBY_STATIC_LIB 
     $<BUILD_INTERFACE:${RUBY_CROSS_INSTALL_DIR}/lib/libruby-static.a>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libruby-static.a>
+    # $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libruby-static.a>
 )
 # Listing of all relative paths for extensions
 set(RUBY_EXT_LIBS_REL
@@ -163,11 +163,11 @@ target_link_libraries(ruby INTERFACE
         ${RUBY_EXT_LIBS_BUILD}
         -Wl,--no-whole-archive
     >
-    $<INSTALL_INTERFACE:
-        -Wl,--whole-archive
-        ${RUBY_EXT_LIBS_INSTALL}
-        -Wl,--no-whole-archive
-    >
+    # $<INSTALL_INTERFACE:
+    #     -Wl,--whole-archive
+    #     ${RUBY_EXT_LIBS_INSTALL}
+    #     -Wl,--no-whole-archive
+    # >
     # system libs
     switch::libnx # see https://github.com/vbe0201/switch-cmake
     PkgConfig::ZLIB
@@ -221,7 +221,9 @@ configure_package_config_file(
     ${CMAKE_CURRENT_BINARY_DIR}/RubyConfig.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Ruby
     # These tell configure_package_config_file which variables to make relocatable
-    PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR
+    PATH_VARS 
+        CMAKE_INSTALL_INCLUDEDIR 
+        CMAKE_INSTALL_LIBDIR
 )
 
 # Generate RubyConfigVersion.cmake

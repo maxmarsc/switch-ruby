@@ -6,15 +6,27 @@
 # The caller is responsible for pointing their NRO target at <romfs_build_dir>.
 #
 function(ruby_switch_setup_romfs target romfs_build_dir)
-    get_target_property(_stdlib Ruby::ruby RUBY_STDLIB_DIR)
-    get_target_property(_version Ruby::ruby RUBY_VERSION)
+    if(DEFINED Ruby_RUBYLIBDIR AND Ruby_RUBYLIBDIR)
+        # find_package path: use variables baked into RubyConfig.cmake
+        set(_stdlib "${Ruby_RUBYLIBDIR}")
+        set(_version "${Ruby_VERSION}")
+    else()
+        # FetchContent path: query the live target property
+        get_target_property(_stdlib  Ruby::Switch RUBY_STDLIB_DIR)
+        get_target_property(_version Ruby::Switch RUBY_VERSION)
+    endif()
 
-    if(NOT _stdlib)
+    if(NOT _stdlib OR _stdlib STREQUAL "_stdlib-NOTFOUND")
         message(FATAL_ERROR "ruby_switch_setup_romfs: Ruby::ruby has no RUBY_STDLIB_DIR property. "
                             "Is switch-ruby correctly configured?")
     endif()
 
     set(_dest "${romfs_build_dir}/ruby/${_version}")
+    if(TARGET switch_ruby_cross)
+        set(_depends DEPENDS switch_ruby_cross)
+    else()
+        set(_depends "")
+    endif()
 
     # The actual copy — runs at build time after switch_ruby_cross completes
     add_custom_command(
@@ -22,7 +34,7 @@ function(ruby_switch_setup_romfs target romfs_build_dir)
         COMMAND ${CMAKE_COMMAND} -E make_directory "${_dest}"
         COMMAND ${CMAKE_COMMAND} -E copy_directory "${_stdlib}" "${_dest}"
         COMMAND ${CMAKE_COMMAND} -E touch "${_dest}/.stdlib_copied"
-        DEPENDS switch_ruby_cross
+        ${_depends}
         COMMENT "Copying Ruby ${_version} stdlib into romfs"
     )
 
