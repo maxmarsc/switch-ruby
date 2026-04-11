@@ -18,6 +18,12 @@ set(Ruby_INCLUDE_DIRS "${Ruby_INCLUDE_DIR}" "${Ruby_ARCH_INCLUDE_DIR}")
 set_and_check(Ruby_LIBRARY
     "@PACKAGE_CMAKE_INSTALL_LIBDIR@/libruby-static.a")
 
+set_and_check(Ruby_EXTINIT
+    "@PACKAGE_CMAKE_INSTALL_LIBDIR@/ext/extinit.o")
+
+set_and_check(Ruby_ENCINIT
+    "@PACKAGE_CMAKE_INSTALL_LIBDIR@/enc/encinit.o")
+
 set_and_check(Ruby_RUBYLIBDIR
     "@PACKAGE_CMAKE_INSTALL_LIBDIR@/ruby/@RUBY_VERSION@")
 
@@ -29,7 +35,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/RubyTargets.cmake")
 # INTERFACE_LINK_LIBRARIES, which causes the linker to fail with "-llib/libruby-static.a".
 
 # Gather all absolute paths (PACKAGE_CMAKE_INSTALL_LIBDIR is fully absolute here)
-set(_Ruby_STATIC_ARCHIVES "${Ruby_LIBRARY}") # Already set to absolute libruby-static.a above
+set(_Ruby_STATIC_ARCHIVES "") #
 foreach(_rel IN ITEMS @RUBY_EXT_LIBS_REL@)
     list(APPEND _Ruby_STATIC_ARCHIVES "@PACKAGE_CMAKE_INSTALL_LIBDIR@/${_rel}")
 endforeach()
@@ -37,6 +43,9 @@ endforeach()
 # Prepend them to the target's link libraries so they link before system libs (zlib, libnx, m)
 get_property(_current_libs TARGET Ruby::ruby PROPERTY INTERFACE_LINK_LIBRARIES)
 set_property(TARGET Ruby::ruby PROPERTY INTERFACE_LINK_LIBRARIES
+    ${Ruby_EXTINIT}
+    ${Ruby_ENCINIT}
+    ${Ruby_LIBRARY}
     "-Wl,--whole-archive"
     ${_Ruby_STATIC_ARCHIVES}
     "-Wl,--no-whole-archive"
@@ -47,6 +56,6 @@ set_property(TARGET Ruby::ruby PROPERTY INTERFACE_LINK_LIBRARIES
 # Include the helper functions (romfs setup)
 include("${CMAKE_CURRENT_LIST_DIR}/RubySwitchHelpers.cmake")
 
-# check_required_components is also from @PACKAGE_INIT@
+# check_required_components is also from PACKAGE_INIT
 # It validates that all COMPONENTS requested by the consumer were found
 check_required_components(Ruby)

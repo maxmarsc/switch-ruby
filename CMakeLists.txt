@@ -83,8 +83,9 @@ endif()
 set(RUBY_CROSS_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/ruby-cross-install)
 
 set(RUBY_STATIC_LIB 
+    $<BUILD_INTERFACE:${RUBY_CROSS_BUILD_DIR}/ext/extinit.o>
+    $<BUILD_INTERFACE:${RUBY_CROSS_BUILD_DIR}/enc/encinit.o>
     $<BUILD_INTERFACE:${RUBY_CROSS_INSTALL_DIR}/lib/libruby-static.a>
-    # $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libruby-static.a>
 )
 # Listing of all relative paths for extensions
 set(RUBY_EXT_LIBS_REL
@@ -163,12 +164,6 @@ target_link_libraries(ruby INTERFACE
         ${RUBY_EXT_LIBS_BUILD}
         -Wl,--no-whole-archive
     >
-    # $<INSTALL_INTERFACE:
-    #     -Wl,--whole-archive
-    #     ${RUBY_EXT_LIBS_INSTALL}
-    #     -Wl,--no-whole-archive
-    # >
-    # system libs
     switch::libnx # see https://github.com/vbe0201/switch-cmake
     PkgConfig::ZLIB
     m
@@ -189,9 +184,14 @@ install(
 )
 install(
     FILES 
+        ${RUBY_CROSS_BUILD_DIR}/enc/encinit.o
         ${RUBY_CROSS_BUILD_DIR}/enc/libenc.a 
         ${RUBY_CROSS_BUILD_DIR}/enc/libtrans.a
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/enc
+)
+install(
+    FILES ${RUBY_CROSS_BUILD_DIR}/ext/extinit.o
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/ext
 )
 install(
     DIRECTORY ${RUBY_CROSS_BUILD_DIR}/ext/
@@ -255,7 +255,7 @@ install(EXPORT RubyTargets
 # ##############################################################################
 # pkg-config support
 # ##############################################################################
-set(_pc_libs "-lruby-static -Wl,--whole-archive")
+set(_pc_libs " \${libdir}/ext/extinit.o \${libdir}/enc/encinit.o -lruby-static -Wl,--whole-archive")
 # Because the Ruby static archives does not follow the usual -l<name> convention, 
 # we need to use their full paths in the pkg-config file. 
 # We can use the relative paths from the install prefix to keep it relocatable.
