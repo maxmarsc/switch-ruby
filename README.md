@@ -1,19 +1,22 @@
-# What is Ruby?
+# switch-ruby
 
-Ruby is an interpreted object-oriented programming language with many scripting features
-to process plain text and serialized files, or manage system tasks.
-It is simple, straightforward, and extensible.
-
-## What is this repository?
 This repository is a Homebrew Switch port of MRI Ruby, the reference implementation of Ruby, using devkitpro. It
 is currently based on Ruby 3.4.8. If you wish to find the official README please scroll down.
 
-**BEWARE: This port is still in an experimental stage.**
+**BEWARE: This port is still in an experimental stage: all tests are passing but use with care**
 
 ## The scope
 This repository is meant to be used as a static library for Nintendo Switch homebrew development. It is not meant to be used as a standalone Ruby interpreter. 
 
 As imposed by Horizon OS available features, this port of Ruby comes with limitations which are listed in the [`LIMITATIONS.md`](LIMITATIONS.md) file. Most of these limitations are inherent to the platform and will not be fixed.
+
+Supported features include:
+- Multithreading
+- Fibers
+- Ractors (experimental)
+- Filesystem access (romfs and sdmc)
+- Sockets
+- Most of the standard library (with some limitations)
 
 The current builtins native extensions are included:
  - `rbconfig/sizeof`
@@ -55,47 +58,39 @@ cmake --build build
 cmake --install build
 ```
 
-#### Integration with a CMake project
-Add the following lines to your CMakeLists.txt:
-```cmake
-find_package(ruby REQUIRED)
-target_link_libraries(your_target PRIVATE Ruby::ruby)
-```
+Alternatively you can use the library without installing as part of your build tree
+by using CMake's `FetchContent` / `add_subdirectory` features (see examples).
 
-#### Integration with a Make project
-```makefile
-RUBY_CFLAGS  := $(shell pkg-config --cflags ruby)
-RUBY_LDFLAGS := $(shell pkg-config --libs   ruby)
-
-my_app.elf: main.o
-	$(CC) $^ $(LDFLAGS) $(RUBY_LDFLAGS) -o $@
-
-main.o: main.c
-	$(CC) $(CFLAGS) $(RUBY_CFLAGS) -c $< -o $@
-```
-
-
-### Using FetchContent
-If you already use CMake, you can use the `FetchContent` module to automatically download and build the library as part of your project:
-```cmake
-include(FetchContent)
-
-FetchContent_Declare(
-  switch-ruby
-  GIT_REPOSITORY https://github.com/maxmarsc/switch-ruby.git
-  GIT_TAG main
-)
-FetchContent_MakeAvailable(switch-ruby)
-
-target_link_libraries(your_target PRIVATE Ruby::ruby)
-```
 
 ## How to use
-TODO
+This repository provides an example of a C++ application using the library in the `examples` directory. 
+You can use it as a reference for your own application.
+
+The same example can be built in three different fashions:
+- Using CMake's `FetchContent` (see [examples/cmake_fetch_content](examples/cmake_fetch_content/README.md))
+- Using installed library and CMake's `find_package` (see [examples/cmake_find_package](examples/cmake_find_package/README.md))
+- Using installed library, make and `pkg-config` (see [examples/make](examples/make/README.md))
+
+### The ruby app
+[`main.rb`](examples/common/romfs/ruby/app/main.rb) is a simple Ruby application 
+tries to include most supported features of the port.
+
+### The C++ app
+[`main.cpp`](examples/common/main.cpp) is a simple C++ application that initializes the Ruby VM, 
+runs the Ruby app and then cleans up the VM.
+
+
+## Testing
+This implementation was tested with the full MRI Ruby test suite. You can find the tests performed in these folder, from most basic to most complex:
+- [bootstraptest-switch](./bootstraptest-switch/)
+- [basictest-switch](./basictest-switch/)
+- [test-switch](./test-switch/)
 
 
 --------------------------------------------------------------------------------
 **BELOW THIS LINE IS THE OFFICIAL README OF MRI RUBY.**
+--------------------------------------------------------------------------------
+
 
 ## Features of Ruby
 
