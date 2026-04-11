@@ -67,9 +67,9 @@ This repository provides an example of a C++ application using the library in th
 You can use it as a reference for your own application.
 
 The same example can be built in three different fashions:
-- Using CMake's `FetchContent` (see [examples/cmake_fetch_content](examples/cmake_fetch_content/README.md))
-- Using installed library and CMake's `find_package` (see [examples/cmake_find_package](examples/cmake_find_package/README.md))
-- Using installed library, make and `pkg-config` (see [examples/make](examples/make/README.md))
+- Using CMake's `FetchContent` (see [examples/cmake_fetch_content](examples/cmake_fetch_content))
+- Using installed library and CMake's `find_package` (see [examples/cmake_find_package](examples/cmake_find_package))
+- Using installed library, make and `pkg-config` (see [examples/make](examples/make))
 
 ### The ruby app
 [`main.rb`](examples/common/romfs/ruby/app/main.rb) is a simple Ruby application 
