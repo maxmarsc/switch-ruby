@@ -256,33 +256,17 @@ install(EXPORT RubyTargets
 # pkg-config support
 # ##############################################################################
 set(_pc_libs "-lruby-static -Wl,--whole-archive")
-
-# Walk the relative path list to generate the correct -L and -l flags for the pkg-config file
+# Because the Ruby static archives does not follow the usual -l<name> convention, 
+# we need to use their full paths in the pkg-config file. 
+# We can use the relative paths from the install prefix to keep it relocatable.
 foreach(rel IN LISTS RUBY_EXT_LIBS_REL)
-    get_filename_component(_dir  "${rel}" DIRECTORY)
-    get_filename_component(_name "${rel}" NAME_WE)
-    string(REGEX REPLACE "^lib" "" _libname "${_name}")
-    if(_dir STREQUAL "")
-        string(APPEND _pc_libs " -l${_libname}")
-    else()
-        string(APPEND _pc_libs " -L\${libdir}/${_dir} -l${_libname}")
-    endif()
+    string(APPEND _pc_libs " \${libdir}/${rel}")
 endforeach()
 
-# system libs
+# System libs (these standard libs can safely use -l)
 string(APPEND _pc_libs " -Wl,--no-whole-archive -lz -lm -lnx")
 
 set(RUBY_PC_LIBS "${_pc_libs}")
-
-
-# GNUInstallDirs gives absolute paths — pkg-config needs relative-to-prefix
-# CMAKE_INSTALL_LIBDIR is already relative (e.g. "lib"), but guard against an absolute override
-cmake_path(RELATIVE_PATH CMAKE_INSTALL_LIBDIR
-    BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}"
-    OUTPUT_VARIABLE CMAKE_INSTALL_LIBDIR_REL)
-cmake_path(RELATIVE_PATH CMAKE_INSTALL_INCLUDEDIR
-    BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}"
-    OUTPUT_VARIABLE CMAKE_INSTALL_INCLUDEDIR_REL)
 
 configure_file(
     cmake/ruby.pc.in

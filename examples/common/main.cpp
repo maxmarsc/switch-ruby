@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <string>
+#include <array>
 
 // Include the main libnx system header, for Switch development
 #include <switch.h>
@@ -15,7 +16,8 @@ int rubyWork() {
   consoleUpdate(nullptr);
   {
     int load_path_state = 0;
-    rb_eval_string_protect("$LOAD_PATH.unshift('" RUBY_STDLIB_DIR "')",
+    rb_eval_string_protect("$LOAD_PATH.unshift('" RUBY_STDLIB_DIR
+                           "', '" RUBY_STDLIB_DIR "/aarch64-elf')",
                            &load_path_state);
     if (load_path_state != 0) {
       VALUE err           = rb_errinfo();
@@ -88,14 +90,15 @@ int main(int argc, char** argv) {
 
   // Setup ruby
   printf("Initializing Ruby...\n");
-  // NOLINTNEXTLINE
-  char* ruby_opts[] = {argv[0], "-e", ""};
+  // NOLINTBEGIN(cppcoreguidelines-pro-type-const-cast)
+  std::array<char*, 3> ruby_opts{*argv, const_cast<char*>("-e"),
+                                 const_cast<char*>("")};
+  // NOLINTEND(cppcoreguidelines-pro-type-const-cast)
   ruby_sysinit(&argc, &argv);
   RUBY_INIT_STACK;
   ruby_init();
   // Load the built-in features & extensions
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
-  ruby_options(3, ruby_opts);
+  ruby_options(3, ruby_opts.data());
 
   // don't forget to set this flag to make sure ruby_cleanup() clean everything up
   rb_free_at_exit = true;

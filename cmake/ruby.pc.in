@@ -1,6 +1,10 @@
-prefix=@CMAKE_INSTALL_PREFIX@
-libdir=${prefix}/@CMAKE_INSTALL_LIBDIR_REL@
-includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR_REL@
+prefix=${pcfiledir}/../..
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+# Custom properties to have access to stdlib in Makefile
+ruby_version=@RUBY_VERSION@
+rubylibdir=${libdir}/ruby/@RUBY_VERSION@
 
 Name: ruby
 Description: MRI Ruby @RUBY_VERSION@ static library for Nintendo Switch (Horizon OS)
