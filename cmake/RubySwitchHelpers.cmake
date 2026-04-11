@@ -12,8 +12,8 @@ function(ruby_switch_setup_romfs target romfs_build_dir)
         set(_version "${Ruby_VERSION}")
     else()
         # FetchContent path: query the live target property
-        get_target_property(_stdlib  Ruby::Switch RUBY_STDLIB_DIR)
-        get_target_property(_version Ruby::Switch RUBY_VERSION)
+        get_target_property(_stdlib  Ruby::ruby RUBY_STDLIB_DIR)
+        get_target_property(_version Ruby::ruby RUBY_VERSION)
     endif()
 
     if(NOT _stdlib OR _stdlib STREQUAL "_stdlib-NOTFOUND")
