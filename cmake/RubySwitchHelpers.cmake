@@ -38,10 +38,10 @@ function(ruby_switch_setup_romfs target romfs_build_dir)
         COMMENT "Copying Ruby ${_version} stdlib into romfs"
     )
 
-    add_custom_target(ruby_stdlib_romfs
+    add_custom_target(${target}_ruby_stdlib_romfs
         DEPENDS "${_dest}/.stdlib_copied"
     )
 
     # Make the NRO target depend on the copy being done
-    add_dependencies(${target} ruby_stdlib_romfs)
+    add_dependencies(${target} ${target}_ruby_stdlib_romfs)
 endfunction()
