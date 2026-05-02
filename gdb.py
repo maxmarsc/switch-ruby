@@ -53,9 +53,9 @@ READELF = DEVKITPRO_BASE / "devkitA64" / "bin" / "aarch64-none-elf-readelf"
 if not READELF.is_file():
     sys.exit(f"Could not find readelf at {READELF}")
 output = subprocess.check_output([READELF, "-S", TARGET_ELF], text=True)
-rodata_offset_pattern = r"\.rodata\s+PROGBITS\s+([0-9]+)"
-data_offset_pattern = r"\.data\s+PROGBITS\s+([0-9]+)"
-bss_offset_pattern = r"\.bss\s+NOBITS\s+([0-9]+)"
+rodata_offset_pattern = r"\.rodata\s+PROGBITS\s+([0-9a-fA-F]+)"
+data_offset_pattern = r"\.data\s+PROGBITS\s+([0-9a-fA-F]+)"
+bss_offset_pattern = r"\.bss\s+NOBITS\s+([0-9a-fA-F]+)"
 rodata_offset = int("0x" + re.search(rodata_offset_pattern,
                     output, re.MULTILINE).group(1), 16)
 data_offset = int("0x" + re.search(data_offset_pattern,

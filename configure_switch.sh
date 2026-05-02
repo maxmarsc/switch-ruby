@@ -447,6 +447,26 @@ sed -i "/^miniruby\\\$(EXEEXT):/,/^[^\t]/{
 }" "${PWD}/Makefile"
 sed -i "s|^RUNRUBY_COMMAND = .*|RUNRUBY_COMMAND = ${NATIVE_BUILD}/ruby -I${NATIVE_BUILD} -I${NATIVE_BUILD}/.ext/${NATIVE_ARCH} -I${NATIVE_BUILD}/.ext/common -I${ROOT_PATH}/lib|" "${PWD}/Makefile"
 
+
+# =============================================================================
+# 6) Disable debug info for prism objects
+# =============================================================================
+# Prism's generated files (node.c, serialize.c from *.erb templates) compile
+# into very large functions whose DWARF line-table and .debug_aranges entries
+# bleed past the function's actual address range in the final ELF — even with
+# -ffunction-sections + --gc-sections. The result: when GDB stops at any
+# unrelated address (e.g. main()), `info line *$pc` resolves to
+# prism/templates/src/node.c.erb, the IDE opens the wrong file, and the
+# unwinder mis-attributes frames using Prism's CFI. Stripping debug info from
+# Prism objects only is enough to fix it without losing debuggability for
+# the rest of Ruby.
+cat >> "${PWD}/Makefile" <<'EOF'
+
+# --- switch port: suppress debug info for prism (DWARF range bleed fix) ---
+prism/%.o:      CFLAGS += -g0
+prism/util/%.o: CFLAGS += -g0
+EOF
+
 echo ""
 echo "=== Configure complete ==="
 echo ""
